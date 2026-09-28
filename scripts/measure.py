@@ -75,7 +75,8 @@ def main():
                 "bash", str(lang_dir / "run.sh"), kernel,
             ])
             result = None
-            for line in proc.stdout.splitlines():
+            combined_output = (proc.stdout or "") + "\n" + (proc.stderr or "")
+            for line in combined_output.splitlines():
                 m = RESULT_RE.match(line.strip())
                 if m:
                     result = m.groupdict()
