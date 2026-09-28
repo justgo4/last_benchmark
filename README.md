@@ -40,19 +40,16 @@ C and C++ use the newest stable GCC for the primary result. A newest-stable Clan
 
 ## Same-algorithm suite
 
-Seven workloads cover different compiler/runtime pressure points:
+Four workloads form the primary 21-technology ranking; three systems-oriented workloads remain as an extended suite:
 
 | Workload | Main pressure |
 | --- | --- |
 | `integer50` | scalar integer/bitwise code generation |
-| `stable_partition` | memory traffic, indexed writes, bounds-check elimination |
-| `binary_decode` | branch-heavy, bounds-checked binary parsing |
-| `text_parse` | byte classification, integer/date-time conversion |
 | `json_escape` | string scanning, branching, buffer writes, valid JSON escaping |
 | `binary_trees` | allocation, pointer traversal, allocator/GC behavior |
 | `mandelbrot` | scalar floating-point code generation and branches |
 
-The C implementation under `benchmarks/core/c` is the semantic reference. A result is rejected unless its checksum matches [spec/EXPECTED.json](spec/EXPECTED.json).
+The primary ranking uses `integer50`, `json_escape`, `binary_trees`, and `mandelbrot`. The C implementation under `benchmarks/core/c` is the semantic reference. `stable_partition`, `binary_decode`, and `text_parse` remain available as extended systems workloads. A result is rejected unless its checksum matches [spec/EXPECTED.json](spec/EXPECTED.json).
 
 Different algorithms, specialist libraries, unsafe shortcuts, or hand-written SIMD belong in a separate optimized/idiomatic track and never replace the same-algorithm result.
 
