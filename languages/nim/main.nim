@@ -82,9 +82,9 @@ proc benchTrees(depth:uint64,r:int)=
 proc mandel(w,maxIter:int):uint64 =
   var sum=0'u64
   for y in 0..<w:
-    let ci=-1.5+3.0*float64(y)/float64(w-1)
+    let ci = -1.5 + 3.0*float64(y)/float64(w-1)
     for x in 0..<w:
-      let cr=-2.0+3.0*float64(x)/float64(w-1)
+      let cr = -2.0 + 3.0*float64(x)/float64(w-1)
       var zr=0.0;var zi=0.0;var it=0
       while it<maxIter:
         let zr2=zr*zr;let zi2=zi*zi
