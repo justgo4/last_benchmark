@@ -2,7 +2,7 @@ name: benchmark-cython
 on:
   workflow_dispatch:
   push:
-    paths: ['languages/cython/**','scripts/measure.py','spec/**','.github/workflows/benchmark-cython.yml']
+    paths: ['languages/cython/**','scripts/install_latest_clang.sh','scripts/measure.py','spec/**','.github/workflows/benchmark-cython.yml']
 permissions: {contents: read}
 jobs:
   cython:
@@ -11,9 +11,10 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with: {python-version: '3.x', check-latest: true}
-      - run: python -m pip install --upgrade pip setuptools wheel cython
+      - run: pip install --upgrade cython
+      - run: bash scripts/install_latest_clang.sh
       - run: python scripts/check_public_repo.py
-      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: sudo apt-get install -y time
       - run: python scripts/measure.py cython
       - uses: actions/upload-artifact@v4
         with: {name: benchmark-cython, path: results/cython.json}

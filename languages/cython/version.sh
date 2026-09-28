@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 python - <<'PY'
-import Cython,sys
-print("Cython",Cython.__version__,"Python",sys.version.split()[0])
+import sys,Cython
+print("Python",sys.version.split()[0],"Cython",Cython.__version__)
 PY

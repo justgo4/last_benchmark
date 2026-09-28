@@ -1,7 +1,7 @@
 {
   "display_name": "Cython",
   "has_compile_step": true,
-  "optimization": "Cython latest stable; GCC -O3 -march=native -flto -ffp-contract=off; one Python-to-native call per workload",
+  "optimization": "Cython latest stable; Clang latest stable -O3 -march=native -flto",
   "kernels": [
     "integer50",
     "json_escape",
