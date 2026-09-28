@@ -12,15 +12,14 @@ C, C++, Cython, nanobind, PyO3, Rust, Zig, Go, Haskell (GHC), Racket, Chez Schem
 
 The experimental modern Forth discussed separately is intentionally excluded.
 
-## Core workloads
+## Main cross-language workloads
 
 1. **integer50** — branch-light 50-bit xorshift/checksum loop.
-2. **stable_partition** — stable counting partition of 16-bit lane IDs.
-3. **binary_decode** — bounds-checked parsing of deterministic binary records with little-endian fixed-width integers, length-encoded integers and bitmaps.
-4. **text_parse** — checked signed integer plus fixed datetime/microsecond parsing.
-5. **json_escape** — serialize deterministic byte/string data into valid JSON string form with escaping.
-6. **binary_trees** — allocate, traverse and release/collect deterministic trees.
-7. **mandelbrot** — scalar floating-point Mandelbrot kernel with fixed iteration rules.
+2. **json_escape** — serialize deterministic byte/string data into valid JSON string form with escaping.
+3. **binary_trees** — allocate, traverse and release/collect deterministic trees.
+4. **mandelbrot** — scalar floating-point Mandelbrot kernel with fixed iteration rules.
+
+The systems-oriented extended suite additionally contains **stable_partition**, **binary_decode**, and **text_parse**. These are preserved for languages where low-level byte/data-layout semantics are natural, but they are not part of the primary 21-technology ranking.
 
 All implementations must produce the same checksum or validation value before their timing is accepted.
 
