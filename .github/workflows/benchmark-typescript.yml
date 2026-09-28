@@ -1,0 +1,21 @@
+name: benchmark-typescript
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/typescript/**','scripts/measure.py','spec/**','.github/workflows/benchmark-typescript.yml']
+permissions: {contents: read}
+jobs:
+  typescript:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - uses: actions/setup-node@v4
+        with: {node-version: current, check-latest: true}
+      - run: npm install -g typescript@latest
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: python scripts/measure.py typescript
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-typescript, path: results/typescript.json}

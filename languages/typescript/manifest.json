@@ -1,0 +1,11 @@
+{
+  "display_name": "TypeScript",
+  "has_compile_step": true,
+  "optimization": "TypeScript latest stable -> ES2022; Node.js latest stable Current / V8 optimizing JIT",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
+}
