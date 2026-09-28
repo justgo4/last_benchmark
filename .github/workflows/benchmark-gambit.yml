@@ -16,10 +16,23 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y build-essential libssl-dev
-          tag="$(curl -fsSL https://api.github.com/repos/gambit/gambit/releases/latest | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
-          curl -fsSL "https://github.com/gambit/gambit/archive/refs/tags/$tag.tar.gz" -o /tmp/gambit.tar.gz
-          mkdir -p /tmp/gambit-src
-          tar -xzf /tmp/gambit.tar.gz --strip-components=1 -C /tmp/gambit-src
+          tag="$(
+            git ls-remote --tags --refs https://github.com/gambit/gambit.git |
+            awk '{print $2}' |
+            sed 's#refs/tags/##' |
+            grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+
+          echo "$HOME/gambit/bin" >> "$GITHUB_PATH"
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get install -y time
+      - run: python scripts/measure.py gambit
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-gambit, path: results/gambit.json}
+ |
+            sort -V |
+            tail -n1
+          )"
+          test -n "$tag"
+          git clone --depth 1 --branch "$tag" https://github.com/gambit/gambit.git /tmp/gambit-src
           (cd /tmp/gambit-src && ./configure --enable-single-host --prefix="$HOME/gambit" && make -j2 && make install)
           echo "$HOME/gambit/bin" >> "$GITHUB_PATH"
       - run: python scripts/check_public_repo.py
