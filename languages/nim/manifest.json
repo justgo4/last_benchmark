@@ -1,0 +1,11 @@
+{
+  "display_name": "Nim",
+  "has_compile_step": true,
+  "optimization": "-d:release --opt:speed --mm:orc; generated C uses -O3 -march=native -flto",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
+}

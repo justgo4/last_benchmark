@@ -1,0 +1,23 @@
+name: benchmark-nim
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/nim/**','scripts/measure.py','spec/**','.github/workflows/benchmark-nim.yml']
+permissions: {contents: read}
+jobs:
+  nim:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - name: Install latest stable Nim
+        run: |
+          curl -fsSL https://nim-lang.org/choosenim/init.sh | sh -s -- -y
+          echo "$HOME/.nimble/bin" >> "$GITHUB_PATH"
+          "$HOME/.nimble/bin/choosenim" stable -y
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: python scripts/measure.py nim
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-nim, path: results/nim.json}
