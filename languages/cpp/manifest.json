@@ -1,5 +1,11 @@
 {
   "display_name": "C++ (GCC)",
   "has_compile_step": true,
-  "optimization": "-O3 -march=native -flto -DNDEBUG -ffp-contract=off; same-algorithm C-compatible source"
+  "optimization": "-O3 -march=native -flto -DNDEBUG -ffp-contract=off; same-algorithm C-compatible source",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
 }
