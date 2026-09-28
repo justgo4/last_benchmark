@@ -3,5 +3,7 @@ requires=["maturin>=1.9,<2.0"]
 build-backend="maturin"
 [project]
 name="bench-ext"
+[tool.maturin]
+module-name="bench_ext"
 version="0.1.0"
 requires-python=">=3.10"
