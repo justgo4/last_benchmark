@@ -85,16 +85,20 @@ object Bench:
     val depth=16
     treesOnce(6)
     val t=new Array[Double](7);var c=0L;var r=0
-    while r<7 do val a=now();c=treesOnce(depth);t(r)=now()-a;r+=1
+    while r < 7 do
+      val a = now()
+      c = treesOnce(depth)
+      t(r) = now() - a
+      r += 1
     val m=median(t);emit("binary_trees",depth,m,1/m,c)
 
   def mandelbrot(w:Int,maxIter:Int):Long =
     var sum=0L;var y=0
     while y<w do
-      val ci=-1.5+3.0*y.toDouble/(w-1).toDouble
+      val ci = -1.5 + 3.0 * y.toDouble / (w - 1).toDouble
       var x=0
       while x<w do
-        val cr=-2.0+3.0*x.toDouble/(w-1).toDouble
+        val cr = -2.0 + 3.0 * x.toDouble / (w - 1).toDouble
         var zr=0.0;var zi=0.0;var it=0
         while it<maxIter && zr*zr+zi*zi<=4.0 do
           val zr2=zr*zr;val zi2=zi*zi;val nzr=zr2-zi2+cr
@@ -105,7 +109,11 @@ object Bench:
   def benchMandel():Unit =
     val w=1600;mandelbrot(128,20)
     val t=new Array[Double](7);var c=0L;var r=0
-    while r<7 do val a=now();c=mandelbrot(w,50);t(r)=now()-a;r+=1
+    while r < 7 do
+      val a = now()
+      c = mandelbrot(w,50)
+      t(r) = now() - a
+      r += 1
     val m=median(t);val pix=w.toLong*w;emit("mandelbrot",pix,m,pix.toDouble/m/1e6,c)
 
   def main(args:Array[String]):Unit =
