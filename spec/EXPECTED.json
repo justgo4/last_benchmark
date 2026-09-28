@@ -1,0 +1,9 @@
+{
+  "integer50": 611836272046268,
+  "stable_partition": 4999995002100,
+  "binary_decode": 266363890233504,
+  "text_parse": 5000009354280,
+  "json_escape": 2093217363,
+  "binary_trees": 68332206,
+  "mandelbrot": 31455574
+}
