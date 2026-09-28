@@ -22,12 +22,20 @@ ALL_KERNELS = (
 EXPECTED = json.loads((ROOT / "spec" / "EXPECTED.json").read_text())
 
 def run(cmd, capture=True):
-    return subprocess.run(
+    proc = subprocess.run(
         cmd, cwd=ROOT, text=True,
         stdout=subprocess.PIPE if capture else None,
         stderr=subprocess.PIPE if capture else None,
-        check=True,
+        check=False,
     )
+    if proc.returncode != 0:
+        if capture:
+            print("FAILED COMMAND:", " ".join(map(str, cmd)))
+            print("STDOUT:\n" + (proc.stdout or ""))
+            print("STDERR:\n" + (proc.stderr or ""))
+        raise subprocess.CalledProcessError(
+            proc.returncode, cmd, output=proc.stdout, stderr=proc.stderr)
+    return proc
 
 def tree_bytes(path):
     if not path.exists():
