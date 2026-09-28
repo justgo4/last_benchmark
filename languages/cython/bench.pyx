@@ -2,17 +2,19 @@
 from libc.stdint cimport uint64_t, uint8_t
 from libc.stdlib cimport malloc, free
 
-cdef extern from "time.h" nogil:
-    ctypedef struct timespec:
-        long tv_sec
-        long tv_nsec
-    int clock_gettime(int, timespec*)
-    int CLOCK_MONOTONIC
+cdef extern from *:
+    """
+    #include <time.h>
+    static inline double bench_now_s(void) {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        return (double) ts.tv_sec + (double) ts.tv_nsec * 1e-9;
+    }
+    """
+    double bench_now_s() noexcept nogil
 
-cdef double now_s() noexcept nogil:
-    cdef timespec ts
-    clock_gettime(CLOCK_MONOTONIC, &ts)
-    return ts.tv_sec + ts.tv_nsec * 1e-9
+cdef inline double now_s() noexcept nogil:
+    return bench_now_s()
 
 cdef double median7(double* a) noexcept nogil:
     cdef int i,j
