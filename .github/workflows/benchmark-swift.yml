@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-python@v6
         with: {python-version: '3.x'}
       - uses: swift-actions/setup-swift@v2
-        with: {swift-version: latest}
+        with: {swift-version: '6.4'}
       - run: python scripts/check_public_repo.py
       - run: sudo apt-get update && sudo apt-get install -y time
       - run: python scripts/measure.py swift
