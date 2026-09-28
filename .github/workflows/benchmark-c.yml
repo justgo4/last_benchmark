@@ -2,6 +2,14 @@ name: benchmark-c
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'benchmarks/core/**'
+      - 'languages/c/**'
+      - 'scripts/measure.py'
+      - 'scripts/check_public_repo.py'
+      - 'spec/**'
+      - '.github/workflows/benchmark-c.yml'
 
 permissions:
   contents: read
