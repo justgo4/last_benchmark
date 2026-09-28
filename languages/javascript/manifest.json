@@ -1,0 +1,5 @@
+{
+  "display_name": "JavaScript (Node.js)",
+  "has_compile_step": false,
+  "optimization": "Node.js latest stable Current; V8 optimizing JIT; --max-old-space-size=4096"
+}
