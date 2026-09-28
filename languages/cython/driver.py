@@ -1,2 +1,2 @@
-import sys, benchmod
-benchmod.bench(sys.argv[1])
+import sys, bench
+bench.bench(sys.argv[1])
