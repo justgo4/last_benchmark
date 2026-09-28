@@ -14,7 +14,7 @@ The experimental modern Forth discussed separately is intentionally excluded.
 
 ## Core workloads
 
-1. **integer50** — branch-light 50-bit xorshift/checksum loop.
+1. **integer32** — branch-light wrapping 32-bit xorshift/checksum loop. The 32-bit state keeps the same machine-integer semantics across native languages, JVM languages, Scheme/Lisp implementations, and JavaScript/TypeScript without requiring BigInt.
 2. **stable_partition** — stable counting partition of 16-bit lane IDs.
 3. **binary_decode** — bounds-checked parsing of deterministic binary records with little-endian fixed-width integers, length-encoded integers and bitmaps.
 4. **text_parse** — checked signed integer plus fixed datetime/microsecond parsing.
