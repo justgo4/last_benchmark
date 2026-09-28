@@ -1,0 +1,20 @@
+name: benchmark-swift
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/swift/**','scripts/measure.py','spec/**','.github/workflows/benchmark-swift.yml']
+permissions: {contents: read}
+jobs:
+  swift:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - uses: swift-actions/setup-swift@v2
+        with: {swift-version: latest}
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: python scripts/measure.py swift
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-swift, path: results/swift.json}
