@@ -8,6 +8,7 @@ import qualified Data.ByteString.Lazy as BL
 import GHC.Clock (getMonotonicTimeNSec)
 import System.Environment (getArgs)
 import Text.Printf
+import Control.Monad (replicateM)
 
 now :: IO Double
 now = do n <- getMonotonicTimeNSec; pure (fromIntegral n * 1e-9)
@@ -33,7 +34,11 @@ benchInteger :: IO ()
 benchInteger = do
   let n=200000000
   let !_ = integer50 (n `div` 20 + 1)
-  pairs <- sequence [do a<-now; let !c=integer50 n; b<-now; pure (b-a,c) | _<-[1..7::Int]]
+  pairs <- replicateM 7 $ do
+    a <- now
+    let !c = integer50 n
+    b <- now
+    pure (b-a,c)
   let m=median (map fst pairs); c=snd (last pairs)
   emit "integer50" n m (fromIntegral n/m/1e6) c
 
@@ -62,7 +67,12 @@ benchJson = do
       input=B.pack (take n (cycle patternBytes))
       warm=jsonEscape input
   B.length warm `seq` pure ()
-  pairs <- sequence [do a<-now; let out=jsonEscape input; let !c=fromIntegral (B.length out)+B.foldl' (\z x->z+fromIntegral x) 0 out; b<-now; pure (b-a,c) | _<-[1..7::Int]]
+  pairs <- replicateM 7 $ do
+    a <- now
+    let out = jsonEscape input
+        !c = fromIntegral (B.length out) + B.foldl' (\z x -> z + fromIntegral x) 0 out
+    b <- now
+    pure (b-a,c)
   let m=median(map fst pairs); c=snd(last pairs)
   emit "json_escape" (fromIntegral n) m (fromIntegral n/m/1e9) c
 
@@ -88,7 +98,11 @@ benchTrees :: IO ()
 benchTrees = do
   let depth=16
   treesOnce 6 `seq` pure ()
-  pairs<-sequence[do a<-now; let !c=treesOnce depth; b<-now; pure(b-a,c)|_<-[1..7::Int]]
+  pairs <- replicateM 7 $ do
+    a <- now
+    let !c = treesOnce depth
+    b <- now
+    pure (b-a,c)
   let m=median(map fst pairs);c=snd(last pairs)
   emit "binary_trees" (fromIntegral depth) m (1/m) c
 
@@ -110,7 +124,11 @@ benchMandel :: IO ()
 benchMandel = do
   let w=1600
   mandelbrot 128 20 `seq` pure ()
-  pairs<-sequence[do a<-now;let !c=mandelbrot w 50;b<-now;pure(b-a,c)|_<-[1..7::Int]]
+  pairs <- replicateM 7 $ do
+    a <- now
+    let !c = mandelbrot w 50
+    b <- now
+    pure (b-a,c)
   let m=median(map fst pairs);c=snd(last pairs);pix=fromIntegral(w*w)::Word64
   emit "mandelbrot" pix m (fromIntegral pix/m/1e6) c
 
