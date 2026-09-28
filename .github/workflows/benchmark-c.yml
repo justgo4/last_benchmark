@@ -1,0 +1,26 @@
+name: benchmark-c
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c-reference:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Public repository safety gate
+        run: python scripts/check_public_repo.py
+      - name: Install measurement dependency
+        run: sudo apt-get update && sudo apt-get install -y time
+      - name: Run C reference
+        run: python scripts/measure.py c
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-c
+          path: results/c.json
