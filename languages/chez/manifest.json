@@ -1,0 +1,11 @@
+{
+  "display_name": "Chez Scheme",
+  "has_compile_step": true,
+  "optimization": "Latest stable Chez Scheme; compile-program native code; R6RS/chezscheme primitives",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
+}
