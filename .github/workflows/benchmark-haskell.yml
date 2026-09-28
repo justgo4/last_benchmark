@@ -1,0 +1,21 @@
+name: benchmark-haskell
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/haskell/**','scripts/measure.py','spec/**','.github/workflows/benchmark-haskell.yml']
+permissions: {contents: read}
+jobs:
+  haskell:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: latest
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: python scripts/measure.py haskell
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-haskell, path: results/haskell.json}
