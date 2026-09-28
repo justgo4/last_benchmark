@@ -17,9 +17,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libncurses-dev uuid-dev zlib1g-dev
           tag="$(curl -fsSL https://api.github.com/repos/cisco/ChezScheme/releases/latest | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
-          curl -fsSL "https://github.com/cisco/ChezScheme/archive/refs/tags/$tag.tar.gz" -o /tmp/chez.tar.gz
-          mkdir -p /tmp/chez-src
-          tar -xzf /tmp/chez.tar.gz --strip-components=1 -C /tmp/chez-src
+          git clone --depth 1 --branch "$tag" --recurse-submodules https://github.com/cisco/ChezScheme.git /tmp/chez-src
           (cd /tmp/chez-src && ./configure --threads && make -j2)
           bindir="$(find /tmp/chez-src -type f -name scheme -perm -111 | head -n1 | xargs dirname)"
           echo "$bindir" >> "$GITHUB_PATH"
