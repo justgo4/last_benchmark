@@ -1,5 +1,11 @@
 {
   "display_name": "Java",
   "has_compile_step": true,
-  "optimization": "javac -g:none; HotSpot tiered JIT; -XX:+UseParallelGC"
+  "optimization": "javac -g:none; HotSpot tiered JIT; -XX:+UseParallelGC",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
 }
