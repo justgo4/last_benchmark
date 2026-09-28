@@ -1,5 +1,5 @@
 #!r6rs
-(import (rnrs) (chezscheme))
+(import (chezscheme))
 
 (define rounds 7)
 (define mask (- (bitwise-arithmetic-shift-left 1 50) 1))
