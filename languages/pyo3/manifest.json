@@ -1,0 +1,11 @@
+{
+  "display_name": "PyO3",
+  "has_compile_step": true,
+  "optimization": "PyO3 0.29.2 latest stable; Rust release opt-level=3 LTO=fat codegen-units=1 target-cpu=native; one Python-to-native call",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
+}

@@ -1,0 +1,25 @@
+name: benchmark-pyo3
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/pyo3/**','scripts/measure.py','spec/**','.github/workflows/benchmark-pyo3.yml']
+permissions: {contents: read}
+jobs:
+  pyo3:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x', check-latest: true}
+      - name: Install latest stable Rust and maturin
+        run: |
+          curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          python -m pip install --upgrade pip maturin
+      - name: Prefetch Rust dependencies outside compile timing
+        run: cd languages/pyo3 && "$HOME/.cargo/bin/cargo" fetch
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: python scripts/measure.py pyo3
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-pyo3, path: results/pyo3.json}
