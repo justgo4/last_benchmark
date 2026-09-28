@@ -67,7 +67,7 @@ def main():
             fmt_bytes(row.get("final_bytes")),
             str(rss),
         ]
-        values += [fmt_seconds(wm.get(k, {}).get("seconds")) for k in CORE]
+        values += [fmt_seconds(wm.get(k, {}).get("run_seconds")) for k in CORE]
         table.append(values)
         csv_rows.append(values)
 
