@@ -6,8 +6,8 @@
 #include <tuple>
 #include <vector>
 namespace nb=nanobind;
-using clock_t=std::chrono::steady_clock;
-static double now(){return std::chrono::duration<double>(clock_t::now().time_since_epoch()).count();}
+using steady_clock_t=std::chrono::steady_clock;
+static double now(){return std::chrono::duration<double>(steady_clock_t::now().time_since_epoch()).count();}
 static double med(double a[7]){std::sort(a,a+7);return a[3];}
 static uint64_t integer50(uint64_t n){const uint64_t mask=(1ull<<50)-1;uint64_t x=88172645463325252ull&mask,s=0;for(uint64_t i=0;i<n;i++){x^=x>>7;x^=(x<<8)&mask;x^=x>>9;x&=mask;s=(s+(x^(x>>17)))&mask;}return s;}
 struct Node{Node*l=nullptr,*r=nullptr;};
