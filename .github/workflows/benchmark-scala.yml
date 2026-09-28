@@ -17,7 +17,9 @@ jobs:
           java-version: '27'
       - uses: coursier/setup-action@v3
         with:
-          apps: scala scala3 scalac
+          apps: scala-cli
+      - name: Prefetch Scala toolchain dependencies outside compile timing
+        run: scala-cli run -e 'println(1)' --server=false >/dev/null
       - run: python scripts/check_public_repo.py
       - run: sudo apt-get update && sudo apt-get install -y time
       - run: python scripts/measure.py scala
