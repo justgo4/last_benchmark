@@ -1,0 +1,11 @@
+{
+  "display_name": "Scala 3",
+  "has_compile_step": true,
+  "optimization": "Scala 3 latest stable; JVM HotSpot tiered JIT; class/JAR artifact",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
+}

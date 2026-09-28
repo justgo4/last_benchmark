@@ -1,0 +1,25 @@
+name: benchmark-scala
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/scala/**','scripts/measure.py','spec/**','.github/workflows/benchmark-scala.yml']
+permissions: {contents: read}
+jobs:
+  scala:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '27'
+      - uses: coursier/setup-action@v3
+        with:
+          apps: scala scala3 scalac
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: python scripts/measure.py scala
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-scala, path: results/scala.json}
