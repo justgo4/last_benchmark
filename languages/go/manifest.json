@@ -1,5 +1,11 @@
 {
   "display_name": "Go",
   "has_compile_step": true,
-  "optimization": "go build -trimpath -ldflags='-s -w' (default optimizing compiler)"
+  "optimization": "go build -trimpath -ldflags='-s -w' (default optimizing compiler)",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
 }
