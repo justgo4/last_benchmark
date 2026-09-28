@@ -218,7 +218,7 @@ def trees_once(max_depth: Int) -> UInt64:
     var long_lived = make_tree(max_depth)
     var depth = 4
     while depth <= max_depth:
-        var iterations = UInt64(1) << (max_depth - depth + 4)
+        var iterations = UInt64(1) << UInt64(max_depth - depth + 4)
         var subtotal = UInt64(0)
         var i = UInt64(0)
         while i < iterations:
