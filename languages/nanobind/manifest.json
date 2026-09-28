@@ -1,0 +1,11 @@
+{
+  "display_name": "nanobind",
+  "has_compile_step": true,
+  "optimization": "nanobind latest stable; C++20 -O3 -march=native -flto -ffp-contract=off; one Python-to-native call per workload",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
+}
