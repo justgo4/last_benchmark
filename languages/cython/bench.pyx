@@ -26,7 +26,7 @@ cdef double median7(double* a) noexcept nogil:
 
 cdef uint64_t integer50(uint64_t n) noexcept nogil:
     cdef uint64_t mask=(<uint64_t>1<<50)-1
-    cdef uint64_t x=88172645463325252 & mask
+    cdef uint64_t x=(<uint64_t>88172645463325252) & mask
     cdef uint64_t s=0,i
     for i in range(n):
         x ^= x>>7; x ^= (x<<8)&mask; x ^= x>>9; x &= mask
