@@ -1,0 +1,43 @@
+name: benchmark-java
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'languages/java/**'
+      - 'scripts/measure.py'
+      - 'scripts/check_public_repo.py'
+      - 'spec/**'
+      - '.github/workflows/benchmark-java.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  java:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Install latest stable Temurin JDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          feature="$(curl -fsSL https://api.adoptium.net/v3/info/available_releases | python -c 'import json,sys; print(json.load(sys.stdin)["most_recent_feature_release"])')"
+          dir="$RUNNER_TEMP/jdk"
+          mkdir -p "$dir"
+          curl -fsSL "https://api.adoptium.net/v3/binary/latest/$feature/ga/linux/x64/jdk/hotspot/normal/eclipse" | tar -xz --strip-components=1 -C "$dir"
+          echo "JAVA_HOME=$dir" >> "$GITHUB_ENV"
+          echo "$dir/bin" >> "$GITHUB_PATH"
+      - name: Public repository safety gate
+        run: python scripts/check_public_repo.py
+      - name: Install measurement dependency
+        run: sudo apt-get update && sudo apt-get install -y time
+      - name: Run Java benchmark
+        run: python scripts/measure.py java
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-java
+          path: results/java.json

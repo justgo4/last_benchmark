@@ -1,37 +1,37 @@
-name: benchmark-c
+name: benchmark-cpp
 
 on:
   workflow_dispatch:
   push:
     paths:
       - 'benchmarks/core/**'
-      - 'languages/c/**'
+      - 'languages/cpp/**'
       - 'scripts/install_latest_gcc.sh'
       - 'scripts/measure.py'
       - 'scripts/check_public_repo.py'
       - 'spec/**'
-      - '.github/workflows/benchmark-c.yml'
+      - '.github/workflows/benchmark-cpp.yml'
 
 permissions:
   contents: read
 
 jobs:
-  c-reference:
+  cpp:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '3.x'
-      - name: Install latest stable GCC
+      - name: Install latest stable GCC/G++
         run: bash scripts/install_latest_gcc.sh
       - name: Public repository safety gate
         run: python scripts/check_public_repo.py
       - name: Install measurement dependency
         run: sudo apt-get install -y time
-      - name: Run C reference
-        run: python scripts/measure.py c
+      - name: Run C++ benchmark
+        run: python scripts/measure.py cpp
       - uses: actions/upload-artifact@v4
         with:
-          name: benchmark-c
-          path: results/c.json
+          name: benchmark-cpp
+          path: results/cpp.json

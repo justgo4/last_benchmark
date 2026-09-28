@@ -1,0 +1,5 @@
+{
+  "display_name": "Java",
+  "has_compile_step": true,
+  "optimization": "javac -g:none; HotSpot tiered JIT; -XX:+UseParallelGC"
+}
