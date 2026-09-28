@@ -1,0 +1,11 @@
+{
+  "display_name": "Zig",
+  "has_compile_step": true,
+  "optimization": "zig build-exe -O ReleaseFast -mcpu native -lc",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
+}

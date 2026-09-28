@@ -1,0 +1,33 @@
+name: benchmark-zig
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/zig/**','scripts/measure.py','spec/**','.github/workflows/benchmark-zig.yml']
+permissions: {contents: read}
+jobs:
+  zig:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - name: Install latest stable Zig
+        run: |
+          set -euo pipefail
+          python - <<'PY' >/tmp/zig.env
+          import json,urllib.request,re
+          d=json.load(urllib.request.urlopen("https://ziglang.org/download/index.json"))
+          vs=[k for k in d if re.fullmatch(r"\d+\.\d+\.\d+",k)]
+          v=max(vs,key=lambda x:tuple(map(int,x.split("."))))
+          print("ZIG_VERSION="+v)
+          print("ZIG_URL="+d[v]["x86_64-linux"]["tarball"])
+          PY
+          . /tmp/zig.env
+          curl -fsSL "$ZIG_URL" -o /tmp/zig.tar.xz
+          mkdir -p "$HOME/zig"; tar -xJf /tmp/zig.tar.xz --strip-components=1 -C "$HOME/zig"
+          echo "$HOME/zig" >> "$GITHUB_PATH"
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: python scripts/measure.py zig
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-zig, path: results/zig.json}
