@@ -16,7 +16,7 @@ jobs:
           set -euo pipefail
           tag="$(curl -fsSL https://api.github.com/repos/racket/racket/releases/latest | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
           ver="${tag#v}"
-          url="https://download.racket-lang.org/installers/${ver}/racket-minimal-${ver}-x86_64-linux-cs.sh"
+          url="https://download.racket-lang.org/installers/${ver}/racket-${ver}-x86_64-linux-cs.sh"
           curl -fsSL "$url" -o /tmp/racket.sh
           sh /tmp/racket.sh --in-place --dest "$HOME/racket"
           echo "$HOME/racket/bin" >> "$GITHUB_PATH"
