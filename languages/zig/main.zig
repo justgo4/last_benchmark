@@ -63,8 +63,10 @@ fn jsonEscape(input: []const u8, out: []u8) usize {
             10 => { out[j]='\\'; out[j+1]='n'; j+=2; },
             13 => { out[j]='\\'; out[j+1]='r'; j+=2; },
             9 => { out[j]='\\'; out[j+1]='t'; j+=2; },
-            0...31 => { out[j]='\\'; out[j+1]='u'; out[j+2]='0'; out[j+3]='0'; out[j+4]=hex[ch>>4]; out[j+5]=hex[ch&15]; j+=6; },
-            else => { out[j]=ch; j+=1; },
+            else => {
+                if (ch < 32) { out[j]='\\'; out[j+1]='u'; out[j+2]='0'; out[j+3]='0'; out[j+4]=hex[ch>>4]; out[j+5]=hex[ch&15]; j+=6; }
+                else { out[j]=ch; j+=1; }
+            },
         }
     }
     out[j]='"'; return j+1;
