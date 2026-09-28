@@ -14,7 +14,8 @@ RESULT_RE = re.compile(
     r"^RESULT kernel=(?P<kernel>\S+) units=(?P<units>\d+) rounds=(?P<rounds>\d+) "
     r"seconds=(?P<seconds>[0-9.]+) rate=(?P<rate>[0-9.]+) checksum=(?P<checksum>\d+)$"
 )
-KERNELS = (
+CORE_KERNELS = ("integer50", "json_escape", "binary_trees", "mandelbrot")
+ALL_KERNELS = (
     "integer50", "stable_partition", "binary_decode", "text_parse",
     "json_escape", "binary_trees", "mandelbrot",
 )
@@ -64,7 +65,8 @@ def main():
         run(["bash", str(lang_dir / "build.sh")], capture=False)
 
     workloads = []
-    for kernel in tuple(args.kernels or KERNELS):
+    default_kernels = tuple(manifest.get("kernels", CORE_KERNELS))
+    for kernel in tuple(args.kernels or default_kernels):
         with tempfile.NamedTemporaryFile(prefix="bench-rss-", delete=False) as tmp:
             rss_path = pathlib.Path(tmp.name)
         try:
