@@ -1,0 +1,29 @@
+name: benchmark-gambit
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/gambit/**','scripts/measure.py','spec/**','.github/workflows/benchmark-gambit.yml']
+permissions: {contents: read}
+jobs:
+  gambit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - name: Build latest stable Gambit
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y build-essential libssl-dev
+          tag="$(curl -fsSL https://api.github.com/repos/gambit/gambit/releases/latest | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
+          curl -fsSL "https://github.com/gambit/gambit/archive/refs/tags/$tag.tar.gz" -o /tmp/gambit.tar.gz
+          mkdir -p /tmp/gambit-src
+          tar -xzf /tmp/gambit.tar.gz --strip-components=1 -C /tmp/gambit-src
+          (cd /tmp/gambit-src && ./configure --enable-single-host --prefix="$HOME/gambit" && make -j2 && make install)
+          echo "$HOME/gambit/bin" >> "$GITHUB_PATH"
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get install -y time
+      - run: python scripts/measure.py gambit
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-gambit, path: results/gambit.json}
