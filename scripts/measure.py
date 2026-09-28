@@ -12,7 +12,7 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 RESULT_RE = re.compile(
     r"^RESULT kernel=(?P<kernel>\S+) units=(?P<units>\d+) rounds=(?P<rounds>\d+) "
-    r"seconds=(?P<seconds>[0-9.]+) rate=(?P<rate>[0-9.]+) checksum=(?P<checksum>\d+)$"
+    r"seconds=(?P<seconds>[0-9.eE+-]+) rate=(?P<rate>[0-9.eE+-]+) checksum=(?P<checksum>\d+)$"
 )
 CORE_KERNELS = ("integer50", "json_escape", "binary_trees", "mandelbrot")
 ALL_KERNELS = (
