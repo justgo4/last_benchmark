@@ -1,0 +1,35 @@
+name: benchmark-sbcl
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/sbcl/**','scripts/measure.py','spec/**','.github/workflows/benchmark-sbcl.yml']
+permissions: {contents: read}
+jobs:
+  sbcl:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - name: Build latest stable SBCL
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y sbcl make gcc libzstd-dev
+          tag="$(curl -fsSL https://api.github.com/repos/sbcl/sbcl/releases/latest | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
+          curl -fsSL "https://github.com/sbcl/sbcl/archive/refs/tags/$tag.tar.gz" -o /tmp/sbcl.tar.gz
+          mkdir -p /tmp/sbcl-src
+          tar -xzf /tmp/sbcl.tar.gz --strip-components=1 -C /tmp/sbcl-src
+          (cd /tmp/sbcl-src && sh make.sh --fancy)
+          mkdir -p "$HOME/bin"
+          cat >"$HOME/bin/sbcl" <<'SH'
+          #!/usr/bin/env bash
+          exec /tmp/sbcl-src/run-sbcl.sh "$@"
+          SH
+          chmod +x "$HOME/bin/sbcl"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get install -y time
+      - run: python scripts/measure.py sbcl
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-sbcl, path: results/sbcl.json}
