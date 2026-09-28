@@ -1,0 +1,21 @@
+name: public-safety
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Reject sensitive or deployment-specific content
+        run: python scripts/check_public_repo.py
