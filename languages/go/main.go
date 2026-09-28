@@ -369,7 +369,7 @@ func defaultSize(k string) uint64 {
     case "binary_decode": return 5000000
     case "text_parse": return 5000000
     case "json_escape": return 16000000
-    case "binary_trees": return 18
+    case "binary_trees": return 16
     case "mandelbrot": return 1600
     }
     return 0
