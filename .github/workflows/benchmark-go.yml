@@ -1,0 +1,38 @@
+name: benchmark-go
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'benchmarks/core/**'
+      - 'languages/go/**'
+      - 'scripts/measure.py'
+      - 'scripts/check_public_repo.py'
+      - 'spec/**'
+      - '.github/workflows/benchmark-go.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+          check-latest: true
+      - name: Public repository safety gate
+        run: python scripts/check_public_repo.py
+      - name: Install measurement dependency
+        run: sudo apt-get update && sudo apt-get install -y time
+      - name: Run Go benchmark
+        run: python scripts/measure.py go
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-go
+          path: results/go.json

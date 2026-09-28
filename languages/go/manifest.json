@@ -1,0 +1,5 @@
+{
+  "display_name": "Go",
+  "has_compile_step": true,
+  "optimization": "go build -trimpath -ldflags='-s -w' (default optimizing compiler)"
+}
