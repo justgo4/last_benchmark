@@ -1,0 +1,11 @@
+{
+  "display_name": "Racket",
+  "has_compile_step": true,
+  "optimization": "Latest stable Racket CS; raco make + raco exe; unsafe fixnum ops for 50-bit integer kernel",
+  "kernels": [
+    "integer50",
+    "json_escape",
+    "binary_trees",
+    "mandelbrot"
+  ]
+}

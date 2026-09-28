@@ -1,0 +1,27 @@
+name: benchmark-racket
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/racket/**','scripts/measure.py','spec/**','.github/workflows/benchmark-racket.yml']
+permissions: {contents: read}
+jobs:
+  racket:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - name: Install latest stable Racket
+        run: |
+          set -euo pipefail
+          tag="$(curl -fsSL https://api.github.com/repos/racket/racket/releases/latest | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
+          ver="${tag#v}"
+          url="https://download.racket-lang.org/installers/${ver}/racket-minimal-${ver}-x86_64-linux-cs.sh"
+          curl -fsSL "$url" -o /tmp/racket.sh
+          sh /tmp/racket.sh --in-place --dest "$HOME/racket"
+          echo "$HOME/racket/bin" >> "$GITHUB_PATH"
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: python scripts/measure.py racket
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-racket, path: results/racket.json}
