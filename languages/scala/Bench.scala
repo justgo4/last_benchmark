@@ -56,7 +56,7 @@ object Bench:
     while i<n do { in(i)=pattern(i%23); i+=1 }
     val out=new Array[Byte](n*6+2); var on=jsonEscape(in,out); val t=new Array[Double](7); var r=0
     while r<7 do { val a=now(); on=jsonEscape(in,out); t(r)=now()-a; r+=1 }
-    var c=on.toLong;i=0;while i<on do { c += out(i)&255; i+=1 }
+    var c=on.toLong;i=0;while i<on do { c += (out(i)&255).toLong; i+=1 }
     val m=median(t);emit("json_escape",n0,m,n0/m/1e9,c)
 
   def mergeSort(a:Array[Int],tmp:Array[Int]):Unit =

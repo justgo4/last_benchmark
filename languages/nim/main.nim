@@ -38,7 +38,10 @@ proc integer50(n:uint64):uint64 =
   s
 proc benchInteger(n:uint64,r:int)=
   discard integer50(n div 20+1);var t=newSeq[float64](r);var c=0'u64
-  for i in 0..<r:let a=now();c=integer50(n);t[i]=now()-a
+  for i in 0..<r:
+    let a=now()
+    c=integer50(n)
+    t[i]=now()-a
   let m=med(t);emit("integer50",n,r,m,float64(n)/m/1e6,c)
 
 const pat=[97'u8,108,112,104,97,34,98,101,116,97,92,103,97,109,109,97,10,9,1,120,121,122,47]
@@ -63,7 +66,10 @@ proc benchJson(n0:uint64,r:int)=
   let n=int(n0);var inp=newSeq[uint8](n);var outp=newSeq[uint8](n*6+2)
   for i in 0..<n:inp[i]=pat[i mod pat.len]
   var on=jsonEscape(inp,outp);var t=newSeq[float64](r)
-  for x in 0..<r:let a=now();on=jsonEscape(inp,outp);t[x]=now()-a
+  for x in 0..<r:
+    let a=now()
+    on=jsonEscape(inp,outp)
+    t[x]=now()-a
   var c=uint64(on);for i in 0..<on:c+=uint64(outp[i])
   let m=med(t);emit("json_escape",n0,r,m,float64(n0)/m/1e9,c)
 
@@ -226,7 +232,10 @@ proc mandel(w,mi:int):uint64 =
   sum
 proc benchMandel(w0:uint64,r:int)=
   let w=int(w0);discard mandel(min(w,128),20);var t=newSeq[float64](r);var c=0'u64
-  for z in 0..<r:let st=now();c=mandel(w,50);t[z]=now()-st
+  for z in 0..<r:
+    let st=now()
+    c=mandel(w,50)
+    t[z]=now()-st
   let m=med(t);emit("mandelbrot",w0*w0,r,m,float64(w0*w0)/m/1e6,c)
 
 proc benchVA(n0:uint64,r:int)=
@@ -236,7 +245,10 @@ proc benchVA(n0:uint64,r:int)=
     let st=now();var v=newSeqOfCap[uint32](8);for x in inp:v.add(x)
     var h=2166136261'u32
     for i in 0..<v.len:v[i]=v[i] xor uint32(i);h=(h xor v[i]) *% 16777619'u32
-    while v.len>0:let nn=v.len-1;let x=v.pop();h=(h xor (x +% uint32(nn))) *% 16777619'u32
+    while v.len>0:
+      let nn=v.len-1
+      let x=v.pop()
+      h=(h xor (x +% uint32(nn))) *% 16777619'u32
     c=h;t[z]=now()-st
   let m=med(t);emit("dynamic_array",n0,r,m,float64(n0)/m/1e6,uint64(c))
 
