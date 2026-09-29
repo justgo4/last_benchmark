@@ -1,7 +1,7 @@
 {
   "display_name": "Nim",
   "has_compile_step": true,
-  "optimization": "Nim latest stable -d:release --opt:speed --mm:orc; generated C -O3 -march=native -flto; benchmark v2 strict track",
+  "optimization": "Nim release --opt:speed --mm:orc; C -O3 -march=native -flto; benchmark v2 strict track",
   "kernels": [
     "integer50",
     "json_escape",
