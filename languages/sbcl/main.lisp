@@ -211,10 +211,10 @@
                 (when (< (aref dist v) 0)
                   (setf (aref dist v) nd (aref q tail) v)
                   (incf tail)))))
-        (setf seen (u32 (logxor seen (+ tail p))))))
+        (setf seen (u32 (logxor seen (+ tail p)))))))
     (let ((tmp (make-array n :element-type '(unsigned-byte 32))))
       (dotimes (i n) (setf (aref tmp i) (u32 (aref dist i))))
-      (logxor (ck32 tmp) seen)))))
+      (logxor (ck32 tmp) seen))))
 
 (defun bench-bfs ()
   (let* ((n 200000) (d 4) (passes 16)
