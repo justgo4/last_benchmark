@@ -1,7 +1,17 @@
 use std::{env, time::Instant};
+use std::cell::{Cell, RefCell};
 
 fn median(mut v: Vec<f64>) -> f64 { v.sort_by(|a,b| a.total_cmp(b)); v[v.len()/2] }
-fn emit(k:&str,u:u64,r:usize,s:f64,rate:f64,c:u64){println!("RESULT kernel={} units={} rounds={} seconds={:.9} rate={:.6} checksum={}",k,u,r,s,rate,c);}
+#[derive(Clone)]
+pub struct BenchResult{pub kernel:String,pub units:u64,pub rounds:usize,pub seconds:f64,pub rate:f64,pub checksum:u64}
+thread_local!{
+    static LAST:RefCell<Option<BenchResult>>=const{RefCell::new(None)};
+    static QUIET:Cell<bool>=const{Cell::new(false)};
+}
+fn emit(k:&str,u:u64,r:usize,s:f64,rate:f64,c:u64){
+    LAST.with(|x|*x.borrow_mut()=Some(BenchResult{kernel:k.to_string(),units:u,rounds:r,seconds:s,rate,checksum:c}));
+    QUIET.with(|q|if !q.get(){println!("RESULT kernel={} units={} rounds={} seconds={:.9} rate={:.6} checksum={}",k,u,r,s,rate,c);});
+}
 fn mix32(mut x:u32)->u32{x=x.wrapping_add(0x9e3779b9);x^=x>>16;x=x.wrapping_mul(0x85ebca6b);x^=x>>13;x=x.wrapping_mul(0xc2b2ae35);x^(x>>16)}
 fn hash32(mut x:u32)->u32{x^=x>>16;x=x.wrapping_mul(0x7feb352d);x^=x>>15;x=x.wrapping_mul(0x846ca68b);x^(x>>16)}
 fn ck32(a:&[u32])->u32{let mut h=2166136261u32;for &x in a{h^=x;h=h.wrapping_mul(16777619);}h}
@@ -70,4 +80,17 @@ fn trie_once(ch:&mut[i32],term:&mut[u8],words:&[u32],passes:usize)->u32{ch.fill(
 fn bench_trie(n:u64,r:usize){let words:Vec<u32>=(0..n as usize).map(|i|mix32(i as u32)).collect();let mx=1+n as usize*8;let mut ch=vec![-1i32;mx*16];let mut term=vec![0u8;mx];let mut t=Vec::with_capacity(r);let mut c=0;for _ in 0..r{let s=Instant::now();c=trie_once(&mut ch,&mut term,&words,32);t.push(s.elapsed().as_secs_f64());}let m=median(t);emit("trie",n*32,r,m,n as f64*32.0/m/1e6,c as u64);}
 
 fn size(k:&str)->u64{match k{"integer50"=>200000000,"json_escape"=>16000000,"merge_sort"|"binary_search"|"union_find"|"hash_table"|"binary_heap"=>1000000,"prefix_sum"=>8000000,"matrix_mul"=>320,"bfs"=>200000,"dijkstra"|"trie"=>100000,"mandelbrot"=>1600,"dynamic_array"=>5000000,"linked_list"=>4000000,"queue_ring"=>10000000,"bst"=>300000,_=>0}}
-fn main(){let a:Vec<String>=env::args().collect();let k=a.get(1).map(String::as_str).unwrap_or("integer50");let n=a.get(2).and_then(|x|x.parse().ok()).unwrap_or_else(||size(k));let r=a.get(3).and_then(|x|x.parse().ok()).unwrap_or(7usize);match k{"integer50"=>bench_integer(n,r),"json_escape"=>bench_json(n,r),"merge_sort"=>bench_merge(n,r),"binary_search"=>bench_bs(n,r),"prefix_sum"=>bench_prefix(n,r),"matrix_mul"=>bench_mm(n,r),"bfs"=>bench_bfs(n,r),"dijkstra"=>bench_dij(n,r),"union_find"=>bench_uf(n,r),"mandelbrot"=>bench_mandel(n,r),"dynamic_array"=>bench_va(n,r),"linked_list"=>bench_ll(n,r),"queue_ring"=>bench_qr(n,r),"hash_table"=>bench_ht(n,r),"binary_heap"=>bench_bh(n,r),"bst"=>bench_bst(n,r),"trie"=>bench_trie(n,r),_=>panic!("unknown kernel")}}
+fn dispatch(k:&str,n:u64,r:usize){match k{"integer50"=>bench_integer(n,r),"json_escape"=>bench_json(n,r),"merge_sort"=>bench_merge(n,r),"binary_search"=>bench_bs(n,r),"prefix_sum"=>bench_prefix(n,r),"matrix_mul"=>bench_mm(n,r),"bfs"=>bench_bfs(n,r),"dijkstra"=>bench_dij(n,r),"union_find"=>bench_uf(n,r),"mandelbrot"=>bench_mandel(n,r),"dynamic_array"=>bench_va(n,r),"linked_list"=>bench_ll(n,r),"queue_ring"=>bench_qr(n,r),"hash_table"=>bench_ht(n,r),"binary_heap"=>bench_bh(n,r),"bst"=>bench_bst(n,r),"trie"=>bench_trie(n,r),_=>panic!("unknown kernel")}}
+pub fn run_capture(k:&str,n:u64,r:usize)->BenchResult{
+    QUIET.with(|q|q.set(true));
+    dispatch(k,n,r);
+    QUIET.with(|q|q.set(false));
+    LAST.with(|x|x.borrow_mut().take().expect("missing benchmark result"))
+}
+fn main(){
+    let a:Vec<String>=env::args().collect();
+    let k=a.get(1).map(String::as_str).unwrap_or("integer50");
+    let n=a.get(2).and_then(|x|x.parse().ok()).unwrap_or_else(||size(k));
+    let r=a.get(3).and_then(|x|x.parse().ok()).unwrap_or(7usize);
+    dispatch(k,n,r);
+}

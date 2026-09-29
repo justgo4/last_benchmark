@@ -1,11 +1,24 @@
 {
   "display_name": "PyO3",
   "has_compile_step": true,
-  "optimization": "PyO3 0.29.2 latest stable; Rust release opt-level=3 LTO=fat codegen-units=1 target-cpu=native; one Python-to-native call",
+  "optimization": "Rust release opt-level=3 target-cpu=native LTO=fat; PyO3 extension; shared Rust v2 core; benchmark v2 strict track",
   "kernels": [
     "integer50",
     "json_escape",
-    "binary_trees",
-    "mandelbrot"
+    "merge_sort",
+    "binary_search",
+    "prefix_sum",
+    "matrix_mul",
+    "bfs",
+    "dijkstra",
+    "union_find",
+    "mandelbrot",
+    "dynamic_array",
+    "linked_list",
+    "queue_ring",
+    "hash_table",
+    "binary_heap",
+    "bst",
+    "trie"
   ]
 }
