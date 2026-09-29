@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="649" viewBox="0 0 980 649">
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#24292f}
+.title{font-size:22px;font-weight:700}.sub{font-size:13px;fill:#57606a}.label{font-size:13px}.value{font-size:12px;font-weight:600}.bar{fill:#0969da}.grid{stroke:#d0d7de;stroke-width:1}
+@media (prefers-color-scheme:dark){text{fill:#f0f6fc}.sub{fill:#8c959f}.grid{stroke:#30363d}.bar{fill:#58a6ff}}
+</style>
+<text x="20" y="30" class="title">Peak RSS</text>
+<text x="20" y="52" class="sub">Maximum workload-process resident memory across the 4 primary workloads. Lower is better.</text><text x="223" y="97" text-anchor="end" class="label">C (GCC)</text>
+<rect x="235" y="85" width="32.1" height="16" rx="2" class="bar"/>
+<text x="274.1283018867924" y="97" class="value">39.6 MiB</text><text x="223" y="122" text-anchor="end" class="label">Zig</text>
+<rect x="235" y="110" width="32.4" height="16" rx="2" class="bar"/>
+<text x="274.3716981132076" y="122" class="value">39.9 MiB</text><text x="223" y="147" text-anchor="end" class="label">Rust</text>
+<rect x="235" y="135" width="32.4" height="16" rx="2" class="bar"/>
+<text x="274.3716981132076" y="147" class="value">39.9 MiB</text><text x="223" y="172" text-anchor="end" class="label">C++ (GCC)</text>
+<rect x="235" y="160" width="33.8" height="16" rx="2" class="bar"/>
+<text x="275.75094339622643" y="172" class="value">41.6 MiB</text><text x="223" y="197" text-anchor="end" class="label">Go</text>
+<rect x="235" y="185" width="34.1" height="16" rx="2" class="bar"/>
+<text x="276.07547169811323" y="197" class="value">42.0 MiB</text><text x="223" y="222" text-anchor="end" class="label">PyO3</text>
+<rect x="235" y="210" width="38.1" height="16" rx="2" class="bar"/>
+<text x="280.1320754716981" y="222" class="value">47.0 MiB</text><text x="223" y="247" text-anchor="end" class="label">Cython</text>
+<rect x="235" y="235" width="38.6" height="16" rx="2" class="bar"/>
+<text x="280.61886792452833" y="247" class="value">47.6 MiB</text><text x="223" y="272" text-anchor="end" class="label">Gerbil Scheme</text>
+<rect x="235" y="260" width="39.6" height="16" rx="2" class="bar"/>
+<text x="281.5924528301887" y="272" class="value">48.8 MiB</text><text x="223" y="297" text-anchor="end" class="label">Haskell (GHC)</text>
+<rect x="235" y="285" width="41.9" height="16" rx="2" class="bar"/>
+<text x="283.8641509433962" y="297" class="value">51.6 MiB</text><text x="223" y="322" text-anchor="end" class="label">Nim</text>
+<rect x="235" y="310" width="88.7" height="16" rx="2" class="bar"/>
+<text x="330.677358490566" y="322" class="value">109.3 MiB</text><text x="223" y="347" text-anchor="end" class="label">Common Lisp (SBCL)</text>
+<rect x="235" y="335" width="95.1" height="16" rx="2" class="bar"/>
+<text x="337.0867924528302" y="347" class="value">117.2 MiB</text><text x="223" y="372" text-anchor="end" class="label">nanobind</text>
+<rect x="235" y="360" width="95.7" height="16" rx="2" class="bar"/>
+<text x="337.6547169811321" y="372" class="value">117.9 MiB</text><text x="223" y="397" text-anchor="end" class="label">Mojo</text>
+<rect x="235" y="385" width="99.9" height="16" rx="2" class="bar"/>
+<text x="341.8735849056604" y="397" class="value">123.1 MiB</text><text x="223" y="422" text-anchor="end" class="label">Swift</text>
+<rect x="235" y="410" width="100.8" height="16" rx="2" class="bar"/>
+<text x="342.76603773584907" y="422" class="value">124.2 MiB</text><text x="223" y="447" text-anchor="end" class="label">Chez Scheme</text>
+<rect x="235" y="435" width="106.4" height="16" rx="2" class="bar"/>
+<text x="348.3641509433962" y="447" class="value">131.1 MiB</text><text x="223" y="472" text-anchor="end" class="label">Gambit Scheme</text>
+<rect x="235" y="460" width="118.7" height="16" rx="2" class="bar"/>
+<text x="360.6962264150943" y="472" class="value">146.3 MiB</text><text x="223" y="497" text-anchor="end" class="label">TypeScript</text>
+<rect x="235" y="485" width="136.1" height="16" rx="2" class="bar"/>
+<text x="378.13962264150945" y="497" class="value">167.8 MiB</text><text x="223" y="522" text-anchor="end" class="label">JavaScript (Node.js)</text>
+<rect x="235" y="510" width="136.3" height="16" rx="2" class="bar"/>
+<text x="378.3018867924528" y="522" class="value">168.0 MiB</text><text x="223" y="547" text-anchor="end" class="label">Racket</text>
+<rect x="235" y="535" width="242.9" height="16" rx="2" class="bar"/>
+<text x="484.9094339622642" y="547" class="value">299.4 MiB</text><text x="223" y="572" text-anchor="end" class="label">Java</text>
+<rect x="235" y="560" width="301.6" height="16" rx="2" class="bar"/>
+<text x="543.5679245283019" y="572" class="value">371.7 MiB</text><text x="223" y="597" text-anchor="end" class="label">Scala 3</text>
+<rect x="235" y="585" width="645.0" height="16" rx="2" class="bar"/>
+<text x="885" y="597" class="value">795.0 MiB</text></svg>
