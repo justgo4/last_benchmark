@@ -103,7 +103,7 @@ def process_tree_rss_kib(root_pid):
     return total
 
 
-def run_monitored(cmd, sample_interval=0.010):
+def run_monitored(cmd, sample_interval=0.002):
     proc = subprocess.Popen(
         cmd, cwd=ROOT, text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
