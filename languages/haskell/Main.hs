@@ -9,6 +9,8 @@ import GHC.Clock (getMonotonicTimeNSec)
 import System.Environment (getArgs)
 import Text.Printf
 import Control.Monad (replicateM)
+import Control.Exception (evaluate)
+import Data.IORef (newIORef, readIORef)
 
 now :: IO Double
 now = do n <- getMonotonicTimeNSec; pure (fromIntegral n * 1e-9)
@@ -32,10 +34,13 @@ integer50 n = go n (88172645463325252 .&. mask) 0
 
 benchInteger :: Word64 -> IO ()
 benchInteger n = do
-  let !_ = integer50 (n `div` 20 + 1)
+  ref <- newIORef n
+  warmN <- readIORef ref
+  _ <- evaluate (integer50 (warmN `div` 20 + 1))
   pairs <- replicateM 7 $ do
+    n' <- readIORef ref
     a <- now
-    let !c = integer50 n
+    c <- evaluate (integer50 n')
     b <- now
     pure (b-a,c)
   let m=median (map fst pairs); c=snd (last pairs)
@@ -63,13 +68,17 @@ jsonEscape bs = BL.toStrict $ BB.toLazyByteString $ BB.word8 34 <> B.foldl' (\ac
 benchJson :: Int -> IO ()
 benchJson n = do
   let input=B.pack (take n (cycle patternBytes))
-      warm=jsonEscape input
+  ref <- newIORef input
+  warmInput <- readIORef ref
+  warm <- evaluate (jsonEscape warmInput)
   B.length warm `seq` pure ()
   pairs <- replicateM 7 $ do
+    input' <- readIORef ref
     a <- now
-    let out = jsonEscape input
-        !c = fromIntegral (B.length out) + B.foldl' (\z x -> z + fromIntegral x) 0 out
+    out <- evaluate (jsonEscape input')
+    B.length out `seq` pure ()
     b <- now
+    let !c = fromIntegral (B.length out) + B.foldl' (\z x -> z + fromIntegral x) 0 out
     pure (b-a,c)
   let m=median(map fst pairs); c=snd(last pairs)
   emit "json_escape" (fromIntegral n) m (fromIntegral n/m/1e9) c
@@ -94,10 +103,13 @@ treesOnce mx =
   in loop 4 base + checkTree longl
 benchTrees :: Int -> IO ()
 benchTrees depth = do
-  treesOnce 6 `seq` pure ()
+  ref <- newIORef depth
+  warmDepth <- readIORef ref
+  _ <- evaluate (treesOnce (min warmDepth 6))
   pairs <- replicateM 7 $ do
+    depth' <- readIORef ref
     a <- now
-    let !c = treesOnce depth
+    c <- evaluate (treesOnce depth')
     b <- now
     pure (b-a,c)
   let m=median(map fst pairs);c=snd(last pairs)
@@ -119,10 +131,13 @@ mandelbrot w maxIter = goY 0 0
       | otherwise=let nzr=zr*zr-zi*zi+cr; nzi=2*zr*zi+ci in iter cr ci nzr nzi (it+1)
 benchMandel :: Int -> IO ()
 benchMandel w = do
-  mandelbrot 128 20 `seq` pure ()
+  ref <- newIORef w
+  warmW <- readIORef ref
+  _ <- evaluate (mandelbrot (min warmW 128) 20)
   pairs <- replicateM 7 $ do
+    w' <- readIORef ref
     a <- now
-    let !c = mandelbrot w 50
+    c <- evaluate (mandelbrot w' 50)
     b <- now
     pure (b-a,c)
   let m=median(map fst pairs);c=snd(last pairs);pix=fromIntegral(w*w)::Word64
