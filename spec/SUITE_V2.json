@@ -1,7 +1,7 @@
 {
   "version": 2,
   "rounds": 7,
-  "memory_sample_interval_ms": 10,
+  "memory_sample_interval_ms": 2,
   "workloads": [
     {"name":"integer50","group":"algorithm","description":"50-bit integer/xorshift checksum loop"},
     {"name":"json_escape","group":"algorithm","description":"JSON byte escaping and buffer writes"},
