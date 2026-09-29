@@ -30,7 +30,7 @@ jobs:
           GH_REPOSITORY: ${{ github.repository }}
         run: |
           python - <<'PY'
-          import io,json,os,pathlib,urllib.request,zipfile
+          import io,json,os,pathlib,subprocess,tempfile,urllib.request,zipfile
 
           repo=os.environ["GH_REPOSITORY"]
           token=os.environ["GH_TOKEN"]
@@ -72,9 +72,17 @@ jobs:
               art=next((a for a in arts.get("artifacts",[]) if a.get("name")==f"benchmark-{lang}" and not a.get("expired")),None)
               if art is None:
                   raise SystemExit(f"missing artifact benchmark-{lang} for run {run['id']}")
-              blob=get(f"https://api.github.com/repos/{repo}/actions/artifacts/{art['id']}/zip")
-              with zipfile.ZipFile(io.BytesIO(blob)) as z:
-                  z.extractall(results)
+              with tempfile.NamedTemporaryFile(suffix=".zip") as tmp:
+                  subprocess.run([
+                      "curl","-fsSL",
+                      "-H",f"Authorization: Bearer {token}",
+                      "-H","Accept: application/vnd.github+json",
+                      "-H","X-GitHub-Api-Version: 2022-11-28",
+                      f"https://api.github.com/repos/{repo}/actions/artifacts/{art['id']}/zip",
+                      "-o",tmp.name,
+                  ],check=True)
+                  with zipfile.ZipFile(tmp.name) as z:
+                      z.extractall(results)
               p=results/f"{lang}.json"
               if not p.exists():
                   raise SystemExit(f"artifact {art['id']} did not contain {p}")
