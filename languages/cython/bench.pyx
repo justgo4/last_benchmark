@@ -35,8 +35,8 @@ cdef uint64_t integer50(uint64_t n) noexcept nogil:
         s=(s+(x^(x>>17)))&mask
     return s
 
-cdef tuple bench_integer():
-    cdef uint64_t n=200000000,c=0
+cdef tuple bench_integer(uint64_t n):
+    cdef uint64_t c=0
     cdef double t[7],a,m
     cdef int r
     integer50(n//20+1)
@@ -66,8 +66,8 @@ cdef size_t json_escape(const uint8_t* inp,size_t n,uint8_t* out) noexcept nogil
     out[j]=34
     return j+1
 
-cdef tuple bench_json():
-    cdef size_t n=16000000,i,outn
+cdef tuple bench_json(size_t n):
+    cdef size_t i,outn
     cdef uint8_t* inp=<uint8_t*>malloc(n)
     cdef uint8_t* out=<uint8_t*>malloc(n*6+2)
     cdef const char* pat=b"alpha\"beta\\gamma\n\t\x01xyz/"
@@ -117,13 +117,13 @@ cdef uint64_t trees_once(int mx) noexcept nogil:
         total+=s;d+=2
     total+=check_tree(longl);free_tree(longl)
     return total
-cdef tuple bench_trees():
-    cdef uint64_t depth=16,c=0
+cdef tuple bench_trees(uint64_t depth):
+    cdef uint64_t c=0
     cdef double t[7],a,m
     cdef int r
     trees_once(6)
     for r in range(7):
-        a=now_s();c=trees_once(16);t[r]=now_s()-a
+        a=now_s();c=trees_once(<int>depth);t[r]=now_s()-a
     m=median7(t)
     return depth,m,1/m,c
 
@@ -141,21 +141,21 @@ cdef uint64_t mandelbrot(int w,int maxiter) noexcept nogil:
                 nzr=zr2-zi2+cr;zi=2.0*zr*zi+ci;zr=nzr;it+=1
             s+=it
     return s
-cdef tuple bench_mandel():
-    cdef uint64_t pix=2560000,c=0
+cdef tuple bench_mandel(uint64_t w):
+    cdef uint64_t pix=w*w,c=0
     cdef double t[7],a,m
     cdef int r
     mandelbrot(128,20)
     for r in range(7):
-        a=now_s();c=mandelbrot(1600,50);t[r]=now_s()-a
+        a=now_s();c=mandelbrot(<int>w,50);t[r]=now_s()-a
     m=median7(t)
     return pix,m,pix/m/1e6,c
 
-def bench(str kernel):
+def bench(str kernel, uint64_t size):
     cdef tuple x
-    if kernel=="integer50": x=bench_integer()
-    elif kernel=="json_escape": x=bench_json()
-    elif kernel=="binary_trees": x=bench_trees()
-    elif kernel=="mandelbrot": x=bench_mandel()
+    if kernel=="integer50": x=bench_integer(size)
+    elif kernel=="json_escape": x=bench_json(<size_t>size)
+    elif kernel=="binary_trees": x=bench_trees(size)
+    elif kernel=="mandelbrot": x=bench_mandel(size)
     else: raise ValueError(kernel)
     print(f"RESULT kernel={kernel} units={x[0]} rounds=7 seconds={x[1]:.9f} rate={x[2]:.6f} checksum={x[3]}")
