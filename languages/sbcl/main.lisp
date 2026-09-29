@@ -4,12 +4,22 @@
 (defconstant +fnv-offset+ 2166136261)
 (defconstant +fnv-prime+ 16777619)
 
-(defun wall-us ()
-  (multiple-value-bind (sec usec) (sb-ext:get-time-of-day)
-    (+ (* sec 1000000) usec)))
-(defparameter +time-origin-us+ (wall-us))
+(sb-alien:define-alien-type timespec-v2
+  (sb-alien:struct timespec-v2
+    (tv-sec sb-alien:long)
+    (tv-nsec sb-alien:long)))
+(sb-alien:define-alien-routine ("clock_gettime" c-clock-gettime) sb-alien:int
+  (clock-id sb-alien:int)
+  (tp (* timespec-v2)))
+(defun monotonic-ns ()
+  (sb-alien:with-alien ((ts timespec-v2))
+    (let ((rc (c-clock-gettime 1 (sb-alien:addr ts))))
+      (unless (zerop rc) (error "clock_gettime failed: ~d" rc))
+      (+ (* (sb-alien:slot ts 'tv-sec) 1000000000)
+         (sb-alien:slot ts 'tv-nsec)))))
+(defparameter +time-origin-ns+ (monotonic-ns))
 (defun now-s ()
-  (/ (- (wall-us) +time-origin-us+) 1000000d0))
+  (/ (- (monotonic-ns) +time-origin-ns+) 1000000000d0))
 (defun median7 (v) (sort v #'<) (aref v 3))
 (defun emit (k units sec rate checksum)
   (format t "RESULT kernel=~a units=~d rounds=7 seconds=~,9f rate=~,6f checksum=~d~%" k units sec rate checksum))
