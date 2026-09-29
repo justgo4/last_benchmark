@@ -2,15 +2,15 @@
 import Data.Bits
 import Data.Word
 import Data.List (sort)
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Builder as BB
-import qualified Data.ByteString.Lazy as BL
 import GHC.Clock (getMonotonicTimeNSec)
 import System.Environment (getArgs)
 import Text.Printf
 import Control.Monad (replicateM)
 import Control.Exception (evaluate)
 import Data.IORef (newIORef, readIORef)
+import Foreign.Marshal.Alloc (mallocBytes, free)
+import Foreign.Ptr (Ptr)
+import Foreign.Storable (peekByteOff, pokeByteOff)
 
 now :: IO Double
 now = do n <- getMonotonicTimeNSec; pure (fromIntegral n * 1e-9)
@@ -48,39 +48,64 @@ benchInteger n = do
 
 patternBytes :: [Word8]
 patternBytes=[97,108,112,104,97,34,98,101,116,97,92,103,97,109,109,97,10,9,1,120,121,122,47]
-esc :: Word8 -> BB.Builder
-esc c = case c of
-  34 -> BB.word8 92 <> BB.word8 34
-  92 -> BB.word8 92 <> BB.word8 92
-  8  -> BB.word8 92 <> BB.word8 98
-  12 -> BB.word8 92 <> BB.word8 102
-  10 -> BB.word8 92 <> BB.word8 110
-  13 -> BB.word8 92 <> BB.word8 114
-  9  -> BB.word8 92 <> BB.word8 116
-  _ | c < 32 -> let hex="0123456789abcdef"
-                    hi=fromIntegral (c `shiftR` 4)
-                    lo=fromIntegral (c .&. 15)
-                in BB.word8 92<>BB.word8 117<>BB.word8 48<>BB.word8 48<>BB.word8 (fromIntegral (fromEnum (hex!!hi)))<>BB.word8 (fromIntegral (fromEnum (hex!!lo)))
-    | otherwise -> BB.word8 c
-jsonEscape :: B.ByteString -> B.ByteString
-jsonEscape bs = BL.toStrict $ BB.toLazyByteString $ BB.word8 34 <> B.foldl' (\acc c -> acc <> esc c) mempty bs <> BB.word8 34
+
+hexAt :: Word8 -> Word8
+hexAt x | x < 10 = 48 + x
+        | otherwise = 87 + x
+
+jsonEscapePtr :: Ptr Word8 -> Int -> Ptr Word8 -> IO Int
+jsonEscapePtr input n output = do
+  pokeByteOff output 0 (34 :: Word8)
+  let go !i !j
+        | i >= n = pokeByteOff output j (34 :: Word8) >> pure (j + 1)
+        | otherwise = do
+            c <- peekByteOff input i :: IO Word8
+            case c of
+              34 -> two j 34 >>= go (i+1)
+              92 -> two j 92 >>= go (i+1)
+              8  -> two j 98 >>= go (i+1)
+              12 -> two j 102 >>= go (i+1)
+              10 -> two j 110 >>= go (i+1)
+              13 -> two j 114 >>= go (i+1)
+              9  -> two j 116 >>= go (i+1)
+              _ | c < 32 -> do
+                    pokeByteOff output j (92::Word8)
+                    pokeByteOff output (j+1) (117::Word8)
+                    pokeByteOff output (j+2) (48::Word8)
+                    pokeByteOff output (j+3) (48::Word8)
+                    pokeByteOff output (j+4) (hexAt (c `shiftR` 4))
+                    pokeByteOff output (j+5) (hexAt (c .&. 15))
+                    go (i+1) (j+6)
+                | otherwise -> pokeByteOff output j c >> go (i+1) (j+1)
+      two j x = do
+        pokeByteOff output j (92::Word8)
+        pokeByteOff output (j+1) (x::Word8)
+        pure (j+2)
+  go 0 1
 
 benchJson :: Int -> IO ()
 benchJson n = do
-  let input=B.pack (take n (cycle patternBytes))
-  ref <- newIORef input
-  warmInput <- readIORef ref
-  warm <- evaluate (jsonEscape warmInput)
-  B.length warm `seq` pure ()
+  input <- mallocBytes n :: IO (Ptr Word8)
+  output <- mallocBytes (n*6+2) :: IO (Ptr Word8)
+  let fill !i
+        | i >= n = pure ()
+        | otherwise = pokeByteOff input i (patternBytes !! (i `mod` 23)) >> fill (i+1)
+      sumOut !i !limit !acc
+        | i >= limit = pure acc
+        | otherwise = do
+            x <- peekByteOff output i :: IO Word8
+            sumOut (i+1) limit (acc + fromIntegral x)
+  fill 0
+  _ <- jsonEscapePtr input n output
   pairs <- replicateM 7 $ do
-    input' <- readIORef ref
     a <- now
-    out <- evaluate (jsonEscape input')
-    B.length out `seq` pure ()
+    outn <- jsonEscapePtr input n output
     b <- now
-    let !c = fromIntegral (B.length out) + B.foldl' (\z x -> z + fromIntegral x) 0 out
-    pure (b-a,c)
-  let m=median(map fst pairs); c=snd(last pairs)
+    pure (b-a,outn)
+  let m=median(map fst pairs); outn=snd(last pairs)
+  c <- sumOut 0 outn (fromIntegral outn)
+  free output
+  free input
   emit "json_escape" (fromIntegral n) m (fromIntegral n/m/1e9) c
 
 data Node = Leaf | Node !Node !Node
