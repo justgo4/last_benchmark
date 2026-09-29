@@ -1,91 +1,263 @@
 #lang racket/base
-(require racket/list racket/unsafe/ops)
+(require racket/list racket/format)
+
 (define rounds 7)
+(define U32 #xffffffff)
+(define (u32 x) (bitwise-and x U32))
 (define (now) (/ (current-inexact-milliseconds) 1000.0))
 (define (median7 xs) (list-ref (sort xs <) 3))
-(define mask (sub1 (arithmetic-shift 1 50)))
-(define (integer50 n)
-  (let loop ([i 0] [x (bitwise-and 88172645463325252 mask)] [s 0])
-    (if (= i n) s
-        (let* ([x1 (unsafe-fxxor x (unsafe-fxrshift x 7))]
-               [x2 (unsafe-fxxor x1 (unsafe-fxand (unsafe-fxlshift x1 8) mask))]
-               [x3 (unsafe-fxxor x2 (unsafe-fxrshift x2 9))]
-               [x4 (unsafe-fxand x3 mask)]
-               [s1 (unsafe-fxand (unsafe-fx+ s (unsafe-fxxor x4 (unsafe-fxrshift x4 17))) mask)])
-          (loop (unsafe-fx+ i 1) x4 s1)))))
-(define pattern (bytes 97 108 112 104 97 34 98 101 116 97 92 103 97 109 109 97 10 9 1 120 121 122 47))
-(define hex #"0123456789abcdef")
-(define (json-escape in out)
-  (define j 0)
-  (bytes-set! out j 34) (set! j (add1 j))
-  (for ([i (in-range (bytes-length in))])
-    (define c (bytes-ref in i))
-    (cond
-      [(= c 34) (bytes-set! out j 92)(bytes-set! out (+ j 1) 34)(set! j (+ j 2))]
-      [(= c 92) (bytes-set! out j 92)(bytes-set! out (+ j 1) 92)(set! j (+ j 2))]
-      [(= c 8) (bytes-set! out j 92)(bytes-set! out (+ j 1) 98)(set! j (+ j 2))]
-      [(= c 12) (bytes-set! out j 92)(bytes-set! out (+ j 1) 102)(set! j (+ j 2))]
-      [(= c 10) (bytes-set! out j 92)(bytes-set! out (+ j 1) 110)(set! j (+ j 2))]
-      [(= c 13) (bytes-set! out j 92)(bytes-set! out (+ j 1) 114)(set! j (+ j 2))]
-      [(= c 9) (bytes-set! out j 92)(bytes-set! out (+ j 1) 116)(set! j (+ j 2))]
-      [(< c 32)
-       (bytes-set! out j 92)(bytes-set! out (+ j 1) 117)(bytes-set! out (+ j 2) 48)(bytes-set! out (+ j 3) 48)
-       (bytes-set! out (+ j 4) (bytes-ref hex (arithmetic-shift c -4)))
-       (bytes-set! out (+ j 5) (bytes-ref hex (bitwise-and c 15)))(set! j (+ j 6))]
-      [else (bytes-set! out j c)(set! j (add1 j))]))
-  (bytes-set! out j 34)
-  (add1 j))
-(struct node (l r) #:transparent)
-(define (make-tree d) (if (zero? d) (node #f #f) (node (make-tree (sub1 d)) (make-tree (sub1 d)))))
-(define (check-tree n) (if n (+ 1 (check-tree (node-l n)) (check-tree (node-r n))) 0))
-(define (trees-once mx)
-  (define total (check-tree (make-tree (add1 mx))))
-  (define long (make-tree mx))
-  (for ([d (in-range 4 (add1 mx) 2)])
-    (define iters (arithmetic-shift 1 (+ (- mx d) 4)))
-    (define s 0)
-    (for ([i (in-range iters)]) (set! s (+ s (check-tree (make-tree d)))))
-    (set! total (+ total s)))
-  (+ total (check-tree long)))
-(define (mandelbrot w max-it)
-  (define total 0)
-  (for ([y (in-range w)])
-    (define ci (+ -1.5 (/ (* 3.0 y) (- w 1))))
-    (for ([x (in-range w)])
-      (define cr (+ -2.0 (/ (* 3.0 x) (- w 1))))
-      (let loop ([zr 0.0][zi 0.0][it 0])
-        (cond [(>= it max-it) (set! total (+ total it))]
-              [else
-               (define zr2 (* zr zr))(define zi2 (* zi zi))
-               (if (> (+ zr2 zi2) 4.0)
-                   (set! total (+ total it))
-                   (loop (+ (- zr2 zi2) cr) (+ (* 2.0 zr zi) ci) (add1 it)))]))))
-  total)
 (define (emit k units sec rate checksum)
   (printf "RESULT kernel=~a units=~a rounds=7 seconds=~a rate=~a checksum=~a\n"
           k units (~r sec #:precision '(= 9)) (~r rate #:precision '(= 6)) checksum))
-(require racket/format)
+
+(define (mix32 x)
+  (let* ([x (u32 (+ x #x9e3779b9))]
+         [x (u32 (bitwise-xor x (arithmetic-shift x -16)))]
+         [x (u32 (* x #x85ebca6b))]
+         [x (u32 (bitwise-xor x (arithmetic-shift x -13)))]
+         [x (u32 (* x #xc2b2ae35))])
+    (u32 (bitwise-xor x (arithmetic-shift x -16)))))
+(define (hash32 x)
+  (let* ([x (u32 (bitwise-xor x (arithmetic-shift x -16)))]
+         [x (u32 (* x #x7feb352d))]
+         [x (u32 (bitwise-xor x (arithmetic-shift x -15)))]
+         [x (u32 (* x #x846ca68b))])
+    (u32 (bitwise-xor x (arithmetic-shift x -16)))))
+(define (ck32 v)
+  (for/fold ([h #x811c9dc5]) ([x (in-vector v)])
+    (u32 (* (u32 (bitwise-xor h x)) #x01000193))))
+(define (ck64 v)
+  (for/fold ([h #x811c9dc5]) ([x (in-vector v)])
+    (define h1 (u32 (* (u32 (bitwise-xor h (u32 x))) #x01000193)))
+    (u32 (* (u32 (bitwise-xor h1 (u32 (arithmetic-shift x -32)))) #x01000193))))
+
+(define mask50 (sub1 (arithmetic-shift 1 50)))
+(define (integer50 n)
+  (let loop ([i 0] [x (bitwise-and 88172645463325252 mask50)] [s 0])
+    (if (= i n) s
+        (let* ([x (bitwise-xor x (arithmetic-shift x -7))]
+               [x (bitwise-xor x (bitwise-and (arithmetic-shift x 8) mask50))]
+               [x (bitwise-xor x (arithmetic-shift x -9))]
+               [x (bitwise-and x mask50)]
+               [s (bitwise-and (+ s (bitwise-xor x (arithmetic-shift x -17))) mask50)])
+          (loop (add1 i) x s)))))
+(define (bench-integer n)
+  (integer50 (add1 (quotient n 20)))
+  (define checksum 0)
+  (define ts (for/list ([r (in-range rounds)])
+               (define a (now)) (set! checksum (integer50 n)) (- (now) a)))
+  (define m (median7 ts)) (emit "integer50" n m (/ n m 1e6) checksum))
+
+(define pattern (bytes 97 108 112 104 97 34 98 101 116 97 92 103 97 109 109 97 10 9 1 120 121 122 47))
+(define hex #"0123456789abcdef")
+(define (json-escape in out)
+  (define j 1) (bytes-set! out 0 34)
+  (for ([i (in-range (bytes-length in))])
+    (define c (bytes-ref in i))
+    (cond [(= c 34) (bytes-set! out j 92)(bytes-set! out (+ j 1) 34)(set! j (+ j 2))]
+          [(= c 92) (bytes-set! out j 92)(bytes-set! out (+ j 1) 92)(set! j (+ j 2))]
+          [(= c 8) (bytes-set! out j 92)(bytes-set! out (+ j 1) 98)(set! j (+ j 2))]
+          [(= c 12) (bytes-set! out j 92)(bytes-set! out (+ j 1) 102)(set! j (+ j 2))]
+          [(= c 10) (bytes-set! out j 92)(bytes-set! out (+ j 1) 110)(set! j (+ j 2))]
+          [(= c 13) (bytes-set! out j 92)(bytes-set! out (+ j 1) 114)(set! j (+ j 2))]
+          [(= c 9) (bytes-set! out j 92)(bytes-set! out (+ j 1) 116)(set! j (+ j 2))]
+          [(< c 32) (bytes-set! out j 92)(bytes-set! out (+ j 1) 117)(bytes-set! out (+ j 2) 48)(bytes-set! out (+ j 3) 48)
+                    (bytes-set! out (+ j 4) (bytes-ref hex (arithmetic-shift c -4)))
+                    (bytes-set! out (+ j 5) (bytes-ref hex (bitwise-and c 15)))(set! j (+ j 6))]
+          [else (bytes-set! out j c)(set! j (add1 j))]))
+  (bytes-set! out j 34) (add1 j))
+(define (bench-json n)
+  (define in (make-bytes n))(define out (make-bytes (+ (* n 6) 2)))
+  (for ([i (in-range n)]) (bytes-set! in i (bytes-ref pattern (remainder i 23))))
+  (json-escape in out)(define on 0)
+  (define ts (for/list ([r (in-range rounds)])(define a (now))(set! on (json-escape in out))(- (now) a)))
+  (define checksum (+ on (for/sum ([i (in-range on)]) (bytes-ref out i))))
+  (define m (median7 ts))(emit "json_escape" n m (/ n m 1e9) checksum))
+
+(define (merge-sort! a tmp)
+  (define n (vector-length a))(define src a)(define dst tmp)(define flip #f)
+  (let loopw ([w 1])
+    (when (< w n)
+      (for ([lo (in-range 0 n (* 2 w))])
+        (define mid (min (+ lo w) n))(define hi (min (+ lo (* 2 w)) n))
+        (let loop ([i lo][j mid][k lo])
+          (cond [(and (< i mid)(< j hi))
+                 (if (<= (vector-ref src i)(vector-ref src j))
+                     (begin (vector-set! dst k (vector-ref src i))(loop (add1 i) j (add1 k)))
+                     (begin (vector-set! dst k (vector-ref src j))(loop i (add1 j) (add1 k))))]
+                [(< i mid)(vector-set! dst k (vector-ref src i))(loop (add1 i) j (add1 k))]
+                [(< j hi)(vector-set! dst k (vector-ref src j))(loop i (add1 j) (add1 k))])))
+      (define z src)(set! src dst)(set! dst z)(set! flip (not flip))
+      (unless (> w (quotient n 2)) (loopw (* 2 w)))))
+  (when flip (for ([i (in-range n)])(vector-set! a i (vector-ref src i)))))
+(define (bench-merge n)
+  (define base (build-vector n mix32))(define a (make-vector n 0))(define tmp (make-vector n 0))
+  (define ts (for/list ([r (in-range rounds)])
+               (vector-copy! a 0 base)(define q (now))(merge-sort! a tmp)(- (now) q)))
+  (define m (median7 ts))(emit "merge_sort" n m (/ n m 1e6) (ck32 a)))
+
+(define (bsearch a x)
+  (let loop ([l 0][h (vector-length a)])
+    (if (< l h)
+        (let ([m (+ l (quotient (- h l) 2))])
+          (if (< (vector-ref a m) x)(loop (add1 m) h)(loop l m)))
+        (if (and (< l (vector-length a))(= (vector-ref a l) x)) l -1))))
+(define (bench-bs n)
+  (define nq (* n 4))(define a (build-vector n (lambda(i)(* i 2))))
+  (define q (build-vector nq (lambda(i)(remainder (mix32 i) (* 2 n)))))
+  (define c 0)
+  (define ts (for/list ([r (in-range rounds)])
+               (define s (now))(set! c 0)
+               (for ([x (in-vector q)])(define p (bsearch a x))(when (>= p 0)(set! c (+ c p 1))))
+               (- (now) s)))
+  (define m (median7 ts))(emit "binary_search" nq m (/ nq m 1e6) c))
+
+(define (bench-prefix n)
+  (define in (build-vector n (lambda(i)(bitwise-and (mix32 i) 1023))))(define out (make-vector n 0))(define c 0)
+  (define ts (for/list ([r (in-range rounds)])
+               (define st (now))(set! c 0)
+               (for ([p (in-range 16)])
+                 (define s p)(for ([i (in-range n)])(set! s (+ s (vector-ref in i)))(vector-set! out i s))
+                 (set! c (bitwise-xor c s)))
+               (- (now) st)))
+  (set! c (bitwise-xor c (ck64 out)))(define m (median7 ts))(emit "prefix_sum" (* n 16) m (/ (* n 16) m 1e6) c))
+
+(define (bench-matrix n)
+  (define nn (* n n))(define a (build-vector nn (lambda(i)(bitwise-and (mix32 i) 15))))
+  (define b (build-vector nn (lambda(i)(bitwise-and (mix32 (+ i nn)) 15))))(define out (make-vector nn 0))
+  (define ts (for/list ([r (in-range rounds)])
+               (define st (now))
+               (for* ([i (in-range n)][j (in-range n)])
+                 (define s (for/sum ([k (in-range n)]) (* (vector-ref a (+ (* i n) k))(vector-ref b (+ (* k n) j)))))
+                 (vector-set! out (+ (* i n) j) s))
+               (- (now) st)))
+  (define m (median7 ts))(emit "matrix_mul" n m (/ (* n n n) m 1e6) (ck64 out)))
+
+(define (make-graph n d weighted?)
+  (define a (make-vector (* n d) 0))(define w (and weighted? (make-vector (* n d) 0)))
+  (for* ([i (in-range n)][e (in-range d)])
+    (define p (+ (* i d) e))
+    (vector-set! a p (cond [(= e 0)(remainder (add1 i) n)][(= e 1)(remainder (+ i n -1) n)][else (remainder (mix32 p) n)]))
+    (when w (vector-set! w p (+ 1 (bitwise-and (mix32 (u32 (+ #xabc00000 p))) 15)))))
+  (values a w))
+(define (bench-bfs n)
+  (define d 4)(define passes 16)(define-values(a w)(make-graph n d #f))(define dist(make-vector n -1))(define q(make-vector n 0))(define seen 0)
+  (define ts (for/list ([r(in-range rounds)])
+               (define st(now))
+               (for ([z(in-range passes)])
+                 (vector-fill! dist -1)(define h 0)(define t 0)(vector-set! dist 0 0)(vector-set! q t 0)(set! t 1)
+                 (let loop ()(when (< h t)(define u(vector-ref q h))(set! h(add1 h))(define nd(add1(vector-ref dist u)))
+                   (for ([e(in-range d)])(define v(vector-ref a(+ (* u d)e)))(when (<(vector-ref dist v)0)(vector-set! dist v nd)(vector-set! q t v)(set! t(add1 t))))(loop)))
+                 (set! seen(u32(bitwise-xor seen (+ t z)))))
+               (- (now) st)))
+  (define dv(build-vector n(lambda(i)(u32(vector-ref dist i)))))(define c(u32(bitwise-xor(ck32 dv)seen)))(define m(median7 ts))
+  (emit "bfs" (* n passes) m (/ (* n d passes) m 1e6) c))
+
+(define (hp-push! hd hv sz d v)
+  (let loop ([i sz])
+    (if (> i 0)
+        (let ([p (quotient (sub1 i) 2)])
+          (if (<= (vector-ref hd p) d)
+              (begin (vector-set! hd i d) (vector-set! hv i v))
+              (begin (vector-set! hd i (vector-ref hd p))
+                     (vector-set! hv i (vector-ref hv p))
+                     (loop p))))
+        (begin (vector-set! hd i d) (vector-set! hv i v))))
+  (add1 sz))
+(define (hp-pop! hd hv sz)
+  (define od(vector-ref hd 0))(define ov(vector-ref hv 0))(define ns(sub1 sz))(define xd(vector-ref hd ns))(define xv(vector-ref hv ns))
+  (let loop ([i 0])
+    (define l(+ (* i 2)1))
+    (if (>= l ns)(begin(when (> ns 0)(vector-set! hd i xd)(vector-set! hv i xv))(values od ov ns))
+        (let*([rr(add1 l)][c(if(and(< rr ns)(<(vector-ref hd rr)(vector-ref hd l)))rr l)])
+          (if (>=(vector-ref hd c)xd)(begin(vector-set! hd i xd)(vector-set! hv i xv)(values od ov ns))
+              (begin(vector-set! hd i(vector-ref hd c))(vector-set! hv i(vector-ref hv c))(loop c)))))))
+(define (bench-dij n)
+  (define d 4)(define-values(a w)(make-graph n d #t))(define dist(make-vector n 0))(define hd(make-vector(* n d 4)0))(define hv(make-vector(* n d 4)0))(define c 0)
+  (define ts(for/list([r(in-range rounds)])(define st(now))(vector-fill! dist (quotient (expt 2 63)4))(vector-set! dist 0 0)(define sz(hp-push! hd hv 0 0 0))
+    (let loop ()(when (> sz 0)(define-values(dd u ns)(hp-pop! hd hv sz))(set! sz ns)(when (= dd(vector-ref dist u))
+      (for([e(in-range d)])(define p(+(* u d)e))(define v(vector-ref a p))(define nd(+ dd(vector-ref w p)))(when (< nd(vector-ref dist v))(vector-set! dist v nd)(set! sz(hp-push! hd hv sz nd v)))))(loop)))
+    (set! c(ck64 dist))(- (now) st)))
+  (define m(median7 ts))(emit "dijkstra" n m (/ (* n d) m 1e6) c))
+
+(define (uf-find! p x)
+  (let loop([x x])(if(=(vector-ref p x)x)x(begin(vector-set! p x(vector-ref p(vector-ref p x)))(loop(vector-ref p x))))))
+(define (bench-uf n)
+  (define ops(* n 4))(define p(make-vector n 0))(define rank(make-vector n 0))(define A(build-vector ops(lambda(i)(remainder(mix32 i)n))))(define B(build-vector ops(lambda(i)(remainder(mix32(+ i ops))n))))
+  (define ts(for/list([r(in-range rounds)])(define st(now))(for([i(in-range n)])(vector-set! p i i)(vector-set! rank i 0))
+    (for([i(in-range ops)])(define ra(uf-find! p(vector-ref A i)))(define rb(uf-find! p(vector-ref B i)))
+      (when(not(= ra rb))(when(<(vector-ref rank ra)(vector-ref rank rb))(define z ra)(set! ra rb)(set! rb z))(vector-set! p rb ra)(when(=(vector-ref rank ra)(vector-ref rank rb))(vector-set! rank ra(add1(vector-ref rank ra))))))(- (now) st)))
+  (for([i(in-range n)])(vector-set! p i(uf-find! p i)))(define m(median7 ts))(emit "union_find" ops m (/ ops m 1e6) (ck32 p)))
+
+(define (mandelbrot w mi)
+  (for*/sum([y(in-range w)][x(in-range w)])
+    (define ci(+ -1.5(/(* 3.0 y)(- w 1.0))))(define cr(+ -2.0(/(* 3.0 x)(- w 1.0))))
+    (let loop([zr 0.0][zi 0.0][it 0])(if(or(= it mi)(>(+(* zr zr)(* zi zi))4.0))it
+       (let([nz(+(-(* zr zr)(* zi zi))cr)])(loop nz(+(* 2.0 zr zi)ci)(add1 it)))))))
+(define (bench-mandel w)(mandelbrot(min w 128)20)(define c 0)(define ts(for/list([r(in-range rounds)])(define st(now))(set! c(mandelbrot w 50))(- (now) st)))(define m(median7 ts))(emit "mandelbrot" (* w w) m (/ (* w w) m 1e6) c))
+
+(define (bench-array n)
+  (define input(build-vector n mix32))(define c 0)
+  (define ts(for/list([r(in-range rounds)])(define st(now))(define cap 8)(define len 0)(define v(make-vector cap 0))
+    (for([x(in-vector input)])(when(= len cap)(set! cap(* cap 2))(define nv(make-vector cap 0))(vector-copy! nv 0 v)(set! v nv))(vector-set! v len x)(set! len(add1 len)))
+    (define h #x811c9dc5)(for([i(in-range len)])(vector-set! v i(u32(bitwise-xor(vector-ref v i)i)))(set! h(u32(* (u32(bitwise-xor h(vector-ref v i)))#x01000193))))
+    (let loop()(when(> len 0)(set! len(sub1 len))(set! h(u32(* (u32(bitwise-xor h(u32(+ (vector-ref v len)len))))#x01000193)))(loop)))(set! c h)(- (now) st)))
+  (define m(median7 ts))(emit "dynamic_array" n m (/ n m 1e6) c))
+
+(define (bench-list n)
+  (define passes 16)(define next(make-vector n 0))(define val(make-vector n 0))(define base(build-vector n mix32))(define c 0)
+  (define ts(for/list([r(in-range rounds)])(define st(now))(vector-copy! val 0 base)(for([i(in-range n)])(vector-set! next i(if(<(add1 i)n)(add1 i)U32)))
+    (for([b(in-range 0 n 64)])(define hi(sub1(min(+ b 64)n)))(for([i(in-range b(add1 hi))])(vector-set! next i(if(= i b)(if(<(add1 hi)n)(add1 hi)U32)(sub1 i)))))
+    (define h #x811c9dc5)(for([p(in-range passes)])(define cur(if(< 64 n)63(sub1 n)))(define seen 0)
+      (let loop()(when(and(not(= cur U32))(< seen n))(vector-set! val cur(u32(bitwise-xor(vector-ref val cur)(+ seen p))))
+        (set! h(u32(* (u32(bitwise-xor h(u32(+ (vector-ref val cur)cur p))))#x01000193)))(set! cur(vector-ref next cur))(set! seen(add1 seen))(loop)))
+      (set! h(u32(* (u32(bitwise-xor h seen))#x01000193))))(set! c h)(- (now) st)))
+  (define m(median7 ts))(emit "linked_list" (* n passes) m (/ (* n passes) m 1e6) c))
+
+(define (bench-queue ops)
+  (define cap(+ (quotient ops 2)1024))(define b(make-vector cap 0))(define input(build-vector ops mix32))(define c 0)
+  (define ts(for/list([r(in-range rounds)])(define st(now))(define h 0)(define t 0)(define cnt 0)(define z 0)
+    (for([i(in-range ops)])(if(not(= (bitwise-and i 3)3))(begin(when(= cnt cap)(set! z(u32(bitwise-xor z(vector-ref b h))))(set! h(remainder(add1 h)cap))(set! cnt(sub1 cnt)))
+      (vector-set! b t(vector-ref input i))(set! t(remainder(add1 t)cap))(set! cnt(add1 cnt)))
+      (when(> cnt 0)(set! z(u32(bitwise-xor z(vector-ref b h))))(set! h(remainder(add1 h)cap))(set! cnt(sub1 cnt)))))
+    (let loop()(when(> cnt 0)(set! z(u32(bitwise-xor z(vector-ref b h))))(set! h(remainder(add1 h)cap))(set! cnt(sub1 cnt))(loop)))(set! c z)(- (now) st)))
+  (define m(median7 ts))(emit "queue_ring" ops m (/ ops m 1e6) c))
+
+(define (np2 x)(let loop([p 1])(if(< p x)(loop(* p 2))p)))
+(define (bench-hash n)
+  (define cap(np2(* n 2)))(define mask(sub1 cap))(define keys(make-vector cap 0))(define vals(make-vector cap 0))(define ik(build-vector n(lambda(i)(bitwise-ior(mix32 i)1))))(define iv(build-vector n(lambda(i)(mix32(u32(+ i #x55555555))))))(define c 0)
+  (define ts(for/list([r(in-range rounds)])(define st(now))(vector-fill! keys 0)
+    (for([i(in-range n)])(define key(vector-ref ik i))(define p(bitwise-and(hash32 key)mask))(let loop()(if(and(not(zero?(vector-ref keys p)))(not(=(vector-ref keys p)key)))(begin(set! p(bitwise-and(add1 p)mask))(loop))(begin(vector-set! keys p key)(vector-set! vals p(vector-ref iv i))))))
+    (define h 0)(for([i(in-range n)])(define key(vector-ref ik i))(define p(bitwise-and(hash32 key)mask))(let loop()(unless(=(vector-ref keys p)key)(set! p(bitwise-and(add1 p)mask))(loop)))
+      (vector-set! vals p(u32(bitwise-xor(vector-ref vals p)i)))(set! h(u32(bitwise-xor h(vector-ref vals p)))))(set! c h)(- (now) st)))
+  (define m(median7 ts))(emit "hash_table" n m (/ (* n 2) m 1e6) c))
+
+(define (heap-push! h sz x)(let loop([i sz])(if(> i 0)(let([p(quotient(sub1 i)2)])(if(<= (vector-ref h p)x)(vector-set! h i x)(begin(vector-set! h i(vector-ref h p))(loop p))))(vector-set! h i x)))(add1 sz))
+(define (heap-pop! h sz)(define ns(sub1 sz))(define o(vector-ref h 0))(define x(vector-ref h ns))(let loop([i 0])(define l(+(* i 2)1))(cond[(>= l ns)(when(> ns 0)(vector-set! h i x))o][else(define rr(add1 l))(define cc(if(and(< rr ns)(<(vector-ref h rr)(vector-ref h l)))rr l))(if(>=(vector-ref h cc)x)(begin(vector-set! h i x)o)(begin(vector-set! h i(vector-ref h cc))(loop cc)))])))
+(define (bench-heap n)(define h(make-vector n 0))(define input(build-vector n mix32))(define c 0)(define ts(for/list([r(in-range rounds)])(define st(now))(define sz 0)(for([x(in-vector input)])(set! sz(heap-push! h sz x)))(define z 0)(for([i(in-range n)])(set! z(u32(bitwise-xor z(u32(+ (heap-pop! h sz)i)))))(set! sz(sub1 sz)))(set! c z)(- (now) st)))(define m(median7 ts))(emit "binary_heap" n m (/ (* n 2) m 1e6) c))
+
+(define (bench-bst n)
+  (define keys(make-vector n 0))(define left(make-vector n -1))(define right(make-vector n -1))(define input(build-vector n mix32))(define c 0)
+  (define ts(for/list([r(in-range rounds)])(define st(now))(define root -1)
+    (for([i(in-range n)])(define key(vector-ref input i))(vector-set! keys i key)(vector-set! left i -1)(vector-set! right i -1)
+      (if(< root 0)(set! root i)(let loop([cur root])(if(< key(vector-ref keys cur))(if(<(vector-ref left cur)0)(vector-set! left cur i)(loop(vector-ref left cur)))(if(<(vector-ref right cur)0)(vector-set! right cur i)(loop(vector-ref right cur)))))))
+    (define h 0)(for([i(in-range 0 n 3)])(define key(vector-ref input i))(define cur root)(let loop()(when(and(>= cur 0)(not(=(vector-ref keys cur)key)))(set! cur(if(< key(vector-ref keys cur))(vector-ref left cur)(vector-ref right cur)))(loop)))(when(>= cur 0)(set! h(u32(bitwise-xor h(add1 cur))))))(set! c h)(- (now) st)))
+  (define m(median7 ts))(emit "bst" n m (/ n m 1e6) c))
+
+(define (bench-trie n)
+  (define passes 32)(define mx(+ 1(* n 8)))(define ch(make-vector(* mx 16)-1))(define term(make-vector mx 0))(define words(build-vector n mix32))(define c 0)
+  (define ts(for/list([r(in-range rounds)])(define st(now))(vector-fill! ch -1)(vector-fill! term 0)(define used 1)
+    (for([w(in-vector words)])(define node 0)(for([sh(in-range 28 -1 -4)])(define cc(bitwise-and(arithmetic-shift w(- sh))15))(define pos(+(* node 16)cc))(define v(vector-ref ch pos))(when(< v 0)(set! v used)(set! used(add1 used))(vector-set! ch pos v))(set! node v))(vector-set! term node 1))
+    (define h used)(for([p(in-range passes)])(for([i(in-range 0 n 2)])(define w(vector-ref words i))(define node 0)(for([sh(in-range 28 -1 -4)] #:break (< node 0))(set! node(vector-ref ch(+(* node 16)(bitwise-and(arithmetic-shift w(- sh))15)))))(when(and(>= node 0)(not(zero?(vector-ref term node))))(set! h(u32(bitwise-xor h(+ node 1 p)))))))(set! c h)(- (now) st)))
+  (define m(median7 ts))(emit "trie" (* n passes) m (/ (* n passes) m 1e6) c))
+
+(define defaults (hash "integer50" 200000000 "json_escape" 16000000 "merge_sort" 1000000 "binary_search" 1000000 "prefix_sum" 8000000 "matrix_mul" 320 "bfs" 200000 "dijkstra" 100000 "union_find" 1000000 "mandelbrot" 1600 "dynamic_array" 5000000 "linked_list" 4000000 "queue_ring" 10000000 "hash_table" 1000000 "binary_heap" 1000000 "bst" 300000 "trie" 100000))
 (define (bench k)
-  (cond
-    [(equal? k "integer50")
-     (define n 200000000)(integer50 (+ 1 (quotient n 20)))
-     (define checksum 0)
-     (define ts (for/list ([r (in-range rounds)]) (define a (now))(set! checksum (integer50 n))(- (now) a)))
-     (define m (median7 ts))(emit k n m (/ n m 1e6) checksum)]
-    [(equal? k "json_escape")
-     (define n 16000000)(define in (make-bytes n))(define out (make-bytes (+ (* n 6) 2)))
-     (for ([i (in-range n)]) (bytes-set! in i (bytes-ref pattern (remainder i 23))))
-     (json-escape in out)(define outn 0)
-     (define ts (for/list ([r (in-range rounds)]) (define a (now))(set! outn (json-escape in out))(- (now) a)))
-     (define checksum (+ outn (for/sum ([i (in-range outn)]) (bytes-ref out i))))
-     (define m (median7 ts))(emit k n m (/ n m 1e9) checksum)]
-    [(equal? k "binary_trees")
-     (define d 16)(trees-once 6)(define checksum 0)
-     (define ts (for/list ([r (in-range rounds)]) (define a (now))(set! checksum (trees-once d))(- (now) a)))
-     (define m (median7 ts))(emit k d m (/ 1.0 m) checksum)]
-    [(equal? k "mandelbrot")
-     (define w 1600)(mandelbrot 128 20)(define checksum 0)
-     (define ts (for/list ([r (in-range rounds)]) (define a (now))(set! checksum (mandelbrot w 50))(- (now) a)))
-     (define m (median7 ts))(define pix (* w w))(emit k pix m (/ pix m 1e6) checksum)]
-    [else (error 'bench "unknown kernel")]))
-(module+ main (define args (current-command-line-arguments))(bench (if (zero? (vector-length args)) "integer50" (vector-ref args 0))))
+  (define n(hash-ref defaults k))
+  (case (string->symbol k)
+    [(integer50)(bench-integer n)][(json_escape)(bench-json n)][(merge_sort)(bench-merge n)][(binary_search)(bench-bs n)]
+    [(prefix_sum)(bench-prefix n)][(matrix_mul)(bench-matrix n)][(bfs)(bench-bfs n)][(dijkstra)(bench-dij n)][(union_find)(bench-uf n)]
+    [(mandelbrot)(bench-mandel n)][(dynamic_array)(bench-array n)][(linked_list)(bench-list n)][(queue_ring)(bench-queue n)]
+    [(hash_table)(bench-hash n)][(binary_heap)(bench-heap n)][(bst)(bench-bst n)][(trie)(bench-trie n)]
+    [else(error 'bench "unknown kernel")]))
+(module+ main (define args(current-command-line-arguments))(bench(if(zero?(vector-length args))"integer50"(vector-ref args 0))))
