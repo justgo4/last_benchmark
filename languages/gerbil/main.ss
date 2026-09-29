@@ -292,7 +292,7 @@
                                                   (edges (+ e 1) (+ t 1)))
                                            (edges (+ e 1) t)))))))))))))
            (m (vector-ref res 0)) (ck (vector-ref res 1)))
-      (emit "bfs" (* n passes) m (/ (* n d passes) m 1000000.0) ck))))
+      (emit "bfs" (* n passes) m (/ (* n d passes) m 1000000.0) ck)))))
 
 (def (v2-hp-push! hd hv sz dd vv)
   (let loop ((i sz))
@@ -615,7 +615,7 @@
                                    (begin (vector-set! ch idx u) (nib (- sh 4) u (+ u 1)))
                                    (nib (- sh 4) v u))))))))))))
            (m (vector-ref res 0)) (ck (vector-ref res 1)))
-      (emit "trie" (* n passes) m (/ (* n passes) m 1000000.0) ck))))
+      (emit "trie" (* n passes) m (/ (* n passes) m 1000000.0) ck)))
 
 
 (def (bench k)
