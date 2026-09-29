@@ -48,7 +48,9 @@ object Bench:
           if c<32 then
             out(j)=92;out(j+1)=117;out(j+2)=48;out(j+3)=48
             out(j+4)=hx.charAt(c>>>4).toByte;out(j+5)=hx.charAt(c&15).toByte;j+=6
-          else\n            out(j)=c.toByte\n            j+=1
+          else
+            out(j)=c.toByte
+            j+=1
       i+=1
     out(j)=34; j+1
   def benchJson(n0:Long):Unit =

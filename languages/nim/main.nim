@@ -285,7 +285,10 @@ proc mandel(w,mi:int):uint64 =
   for y in 0..<w:
     let ci = -1.5+3.0*float64(y)/float64(w-1)
     for x in 0..<w:
-      let cr = -2.0+3.0*float64(x)/float64(w-1)\n      var zr=0.0\n      var zi=0.0\n      var it=0
+      let cr = -2.0+3.0*float64(x)/float64(w-1)
+      var zr=0.0
+      var zi=0.0
+      var it=0
       while it<mi:
         let a=zr*zr
         let b=zi*zi
