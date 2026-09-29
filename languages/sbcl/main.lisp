@@ -5,8 +5,8 @@
 (defconstant +fnv-prime+ 16777619)
 
 (defun now-s ()
-  (multiple-value-bind (sec nsec) (sb-unix:clock-gettime sb-unix:clock-monotonic)
-    (+ (float sec 1d0) (* (float nsec 1d0) 1d-9))))
+  (multiple-value-bind (sec usec) (sb-ext:get-time-of-day)
+    (+ (float sec 1d0) (* (float usec 1d0) 1d-6))))
 (defun median7 (v) (sort v #'<) (aref v 3))
 (defun emit (k units sec rate checksum)
   (format t "RESULT kernel=~a units=~d rounds=7 seconds=~,9f rate=~,6f checksum=~d~%" k units sec rate checksum))
