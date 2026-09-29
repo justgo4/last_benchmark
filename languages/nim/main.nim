@@ -6,24 +6,24 @@ proc emit(k:string,u:uint64,r:int,s,rate:float64,c:uint64)=
   echo &"RESULT kernel={k} units={u} rounds={r} seconds={s:.9f} rate={rate:.6f} checksum={c}"
 
 proc mix32(x0:uint32):uint32 =
-  var x=x0 +% 0x9e3779b9'u32
-  x=x xor (x shr 16);x=x *% 0x85ebca6b'u32
-  x=x xor (x shr 13);x=x *% 0xc2b2ae35'u32
+  var x=x0 + 0x9e3779b9'u32
+  x=x xor (x shr 16);x=x * 0x85ebca6b'u32
+  x=x xor (x shr 13);x=x * 0xc2b2ae35'u32
   x xor (x shr 16)
 proc hash32(x0:uint32):uint32 =
   var x=x0
-  x=x xor (x shr 16);x=x *% 0x7feb352d'u32
-  x=x xor (x shr 15);x=x *% 0x846ca68b'u32
+  x=x xor (x shr 16);x=x * 0x7feb352d'u32
+  x=x xor (x shr 15);x=x * 0x846ca68b'u32
   x xor (x shr 16)
 proc ck32(a:openArray[uint32]):uint32 =
   var h=2166136261'u32
-  for x in a:h=(h xor x) *% 16777619'u32
+  for x in a:h=(h xor x) * 16777619'u32
   h
 proc ck64(a:openArray[uint64]):uint32 =
   var h=2166136261'u32
   for x in a:
-    h=(h xor uint32(x)) *% 16777619'u32
-    h=(h xor uint32(x shr 32)) *% 16777619'u32
+    h=(h xor uint32(x)) * 16777619'u32
+    h=(h xor uint32(x shr 32)) * 16777619'u32
   h
 
 proc integer50(n:uint64):uint64 =
@@ -33,7 +33,7 @@ proc integer50(n:uint64):uint64 =
   var i=0'u64
   while i<n:
     x=x xor (x shr 7);x=x xor ((x shl 8) and mask);x=x xor (x shr 9);x=x and mask
-    s=(s +% (x xor (x shr 17))) and mask
+    s=(s + (x xor (x shr 17))) and mask
     inc i
   s
 proc benchInteger(n:uint64,r:int)=
@@ -180,7 +180,7 @@ proc graph(n,d:int,weighted:bool):(seq[uint32],seq[uint32]) =
     for e in 0..<d:
       let p=i*d+e
       a[p]=if e==0:uint32((i+1) mod n) elif e==1:uint32((i+n-1) mod n) else: mix32(uint32(p)) mod uint32(n)
-      if weighted:w[p]=1+(mix32(0xabc00000'u32 +% uint32(p)) and 15)
+      if weighted:w[p]=1+(mix32(0xabc00000'u32 + uint32(p)) and 15)
   (a,w)
 proc benchBFS(n0:uint64,r:int)=
   let n=int(n0)
@@ -318,11 +318,11 @@ proc benchVA(n0:uint64,r:int)=
     var v=newSeqOfCap[uint32](8)
     for x in inp:v.add(x)
     var h=2166136261'u32
-    for i in 0..<v.len:v[i]=v[i] xor uint32(i);h=(h xor v[i]) *% 16777619'u32
+    for i in 0..<v.len:v[i]=v[i] xor uint32(i);h=(h xor v[i]) * 16777619'u32
     while v.len>0:
       let nn=v.len-1
       let x=v.pop()
-      h=(h xor (x +% uint32(nn))) *% 16777619'u32
+      h=(h xor (x + uint32(nn))) * 16777619'u32
     c=h;t[z]=now()-st
   let m=med(t);emit("dynamic_array",n0,r,m,float64(n0)/m/1e6,uint64(c))
 
@@ -349,8 +349,8 @@ proc benchLL(n0:uint64,r:int)=
       var cur=if B<n:uint32(B-1) else: uint32(n-1)
       var seen=0
       while cur!=high(uint32) and seen<n:
-        let u=int(cur);val[u]=val[u] xor uint32(seen+p);h=(h xor (val[u] +% cur +% uint32(p))) *% 16777619'u32;cur=next[u];inc seen
-      h=(h xor uint32(seen)) *% 16777619'u32
+        let u=int(cur);val[u]=val[u] xor uint32(seen+p);h=(h xor (val[u] + cur + uint32(p))) * 16777619'u32;cur=next[u];inc seen
+      h=(h xor uint32(seen)) * 16777619'u32
     c=h;t[z]=now()-st
   let m=med(t);emit("linked_list",n0*uint64(passes),r,m,float64(n0*uint64(passes))/m/1e6,uint64(c))
 
@@ -389,7 +389,7 @@ proc benchHT(n0:uint64,r:int)=
   var vals=newSeq[uint32](cap)
   var ik=newSeq[uint32](n)
   var iv=newSeq[uint32](n)
-  for i in 0..<n:ik[i]=mix32(uint32(i)) or 1;iv[i]=mix32(uint32(i) +% 0x55555555'u32)
+  for i in 0..<n:ik[i]=mix32(uint32(i)) or 1;iv[i]=mix32(uint32(i) + 0x55555555'u32)
   var t=newSeq[float64](r)
   var c=0'u32
   for z in 0..<r:
@@ -439,7 +439,7 @@ proc benchBH(n0:uint64,r:int)=
     var sz=0
     for x in inp:hp32Push(h,sz,x)
     var x=0'u32
-    for i in 0..<n:x=x xor (hp32Pop(h,sz) +% uint32(i))
+    for i in 0..<n:x=x xor (hp32Pop(h,sz) + uint32(i))
     c=x;t[z]=now()-st
   let m=med(t);emit("binary_heap",n0,r,m,float64(n0)*2/m/1e6,uint64(c))
 
