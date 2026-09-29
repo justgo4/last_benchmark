@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "rounds": 7,
+  "memory_sample_interval_ms": 10,
+  "workloads": [
+    {"name":"integer50","group":"algorithm","description":"50-bit integer/xorshift checksum loop"},
+    {"name":"json_escape","group":"algorithm","description":"JSON byte escaping and buffer writes"},
+    {"name":"merge_sort","group":"algorithm","description":"stable bottom-up merge sort of deterministic 32-bit integers"},
+    {"name":"binary_search","group":"algorithm","description":"repeated binary search over a sorted deterministic array"},
+    {"name":"prefix_sum","group":"algorithm","description":"64-bit prefix sum over deterministic integer input"},
+    {"name":"matrix_mul","group":"algorithm","description":"dense square Float64 matrix multiplication with fixed loop order"},
+    {"name":"bfs","group":"algorithm","description":"breadth-first traversal of a deterministic sparse graph"},
+    {"name":"dijkstra","group":"algorithm","description":"single-source shortest paths with a binary min-heap"},
+    {"name":"union_find","group":"algorithm","description":"disjoint-set union with path compression and union by rank/size"},
+    {"name":"mandelbrot","group":"algorithm","description":"scalar Float64 Mandelbrot kernel with fixed iteration semantics"},
+    {"name":"dynamic_array","group":"data_structure","description":"growable-array push/read/update/pop operations"},
+    {"name":"linked_list","group":"data_structure","description":"singly-linked-list construction, traversal and update"},
+    {"name":"queue_ring","group":"data_structure","description":"ring-buffer FIFO enqueue/dequeue operations"},
+    {"name":"hash_table","group":"data_structure","description":"open-addressing integer hash table insert/find/update"},
+    {"name":"binary_heap","group":"data_structure","description":"binary min-heap push/pop operations"},
+    {"name":"bst","group":"data_structure","description":"binary-search-tree insert/find/traversal"},
+    {"name":"trie","group":"data_structure","description":"fixed-alphabet trie insert/find operations"}
+  ],
+  "composite_weights": {
+    "runtime": 0.50,
+    "compile_time": 0.15,
+    "average_memory": 0.15,
+    "peak_memory": 0.15,
+    "intermediate_size": 0.025,
+    "final_size": 0.025
+  }
+}
