@@ -84,12 +84,15 @@ benchJson n = do
   emit "json_escape" (fromIntegral n) m (fromIntegral n/m/1e9) c
 
 data Node = Leaf | Node !Node !Node
+{-# NOINLINE makeTree #-}
 makeTree :: Int -> Node
 makeTree 0 = Leaf
 makeTree d = Node (makeTree (d-1)) (makeTree (d-1))
+{-# NOINLINE checkTree #-}
 checkTree :: Node -> Word64
 checkTree Leaf = 1
 checkTree (Node l r)=1+checkTree l+checkTree r
+{-# NOINLINE treesOnce #-}
 treesOnce :: Int -> Word64
 treesOnce mx =
   let stretch=makeTree(mx+1)
