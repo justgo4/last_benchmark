@@ -7,5 +7,6 @@
     "json_escape",
     "binary_trees",
     "mandelbrot"
-  ]
+  ],
+  "benchmark_protocol": "Primary four-workload checksum validation with same-run C baseline"
 }
