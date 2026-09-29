@@ -35,8 +35,7 @@ fn integer50(n: u64) u64 {
     }
     return sum;
 }
-fn benchInteger() void {
-    const n: u64 = 200_000_000;
+fn benchInteger(n: u64) void {
     _ = integer50(n / 20 + 1);
     var t: [7]f64 = undefined;
     var checksum: u64 = 0;
@@ -71,8 +70,8 @@ fn jsonEscape(input: []const u8, out: []u8) usize {
     }
     out[j]='"'; return j+1;
 }
-fn benchJson() !void {
-    const bytes: usize = 16_000_000;
+fn benchJson(bytes_u: u64) !void {
+    const bytes: usize = @intCast(bytes_u);
     const a = std.heap.c_allocator;
     const input = try a.alloc(u8, bytes); defer a.free(input);
     const out = try a.alloc(u8, bytes*6+2); defer a.free(out);
@@ -105,8 +104,8 @@ fn treesOnce(a:std.mem.Allocator,mx:u32)!u64{
     }
     total+=checkTree(long);freeTree(a,long);return total;
 }
-fn benchTrees()!void{
-    const a=std.heap.c_allocator;const depth:u64=16;_ = try treesOnce(a,6);
+fn benchTrees(depth:u64)!void{
+    const a=std.heap.c_allocator;_ = try treesOnce(a,6);
     var t:[7]f64=undefined;var checksum:u64=0;
     for(0..7)|r|{const s=now();checksum=try treesOnce(a,@intCast(depth));t[r]=now()-s;}
     const m=median(&t);emit("binary_trees",depth,m,1.0/m,checksum);
@@ -123,21 +122,22 @@ fn mandelbrot(w:u32,max_iter:u32)u64{
         }
     } return sum;
 }
-fn benchMandel()void{
-    const w:u32=1600;_ = mandelbrot(128,20);var t:[7]f64=undefined;var checksum:u64=0;
+fn benchMandel(width:u64)void{
+    const w:u32=@intCast(width);_ = mandelbrot(128,20);var t:[7]f64=undefined;var checksum:u64=0;
     for(0..7)|r|{const s=now();checksum=mandelbrot(w,50);t[r]=now()-s;}
     const m=median(&t);const pix:u64=@as(u64,w)*w;emit("mandelbrot",pix,m,@as(f64,@floatFromInt(pix))/m/1e6,checksum);
 }
-fn run(k:[]const u8)!void{
-    if(std.mem.eql(u8,k,"integer50")) benchInteger()
-    else if(std.mem.eql(u8,k,"json_escape")) try benchJson()
-    else if(std.mem.eql(u8,k,"binary_trees")) try benchTrees()
-    else if(std.mem.eql(u8,k,"mandelbrot")) benchMandel()
+fn run(k:[]const u8,size:u64)!void{
+    if(std.mem.eql(u8,k,"integer50")) benchInteger(size)
+    else if(std.mem.eql(u8,k,"json_escape")) try benchJson(size)
+    else if(std.mem.eql(u8,k,"binary_trees")) try benchTrees(size)
+    else if(std.mem.eql(u8,k,"mandelbrot")) benchMandel(size)
     else return error.UnknownKernel;
 }
 pub export fn main(argc:c_int,argv:[*]const [*:0]const u8)c_int{
-    if(argc<2)return 64;
+    if(argc<3)return 64;
     const k=std.mem.span(argv[1]);
-    run(k) catch return 1;
+    const size=std.fmt.parseInt(u64,std.mem.span(argv[2]),10) catch return 65;
+    run(k,size) catch return 1;
     return 0;
 }
