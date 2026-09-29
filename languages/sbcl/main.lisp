@@ -204,7 +204,7 @@
            (dummy (dotimes (i n) (setf (aref tmp i) (u32 (aref dist i)))))
            (c (logxor (ck32 tmp) seen)) (m (median7 ts)))
       (declare (ignore dummy))
-      (emit "bfs" (* n passes) m (/ (* n d passes) m 1d6) c))))
+      (emit "bfs" (* n passes) m (/ (* n d passes) m 1d6) c)))))
 
 (defun hp-push (hd hv sz dd vv)
   (let ((i sz))
@@ -273,7 +273,7 @@
               (when (= (aref rank ra) (aref rank rb)) (incf (aref rank ra)))))
         (setf (aref ts r) (- (now-s) st))))
     (dotimes (i n) (setf (aref parent i) (uf-find parent i)))
-    (let ((m (median7 ts))) (emit "union_find" ops m (/ ops m 1d6) (ck32 parent)))))
+    (let ((m (median7 ts))) (emit "union_find" ops m (/ ops m 1d6) (ck32 parent))))))
 
 (defun mandelbrot (w maxiter)
   (let ((sum 0))
@@ -463,7 +463,7 @@
                     (setf h (logxor h (+ node 1 p))))))
             (setf c (u32 h))))
         (setf (aref ts r) (- (now-s) st))))
-    (let ((m (median7 ts))) (emit "trie" (* n passes) m (/ (* n passes) m 1d6) c))))
+    (let ((m (median7 ts))) (emit "trie" (* n passes) m (/ (* n passes) m 1d6) c)))))
 
 (defun bench (k)
   (cond
