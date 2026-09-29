@@ -36,9 +36,51 @@ fn benchBS(nu:u64)!void{const n:usize=@intCast(nu);const nq=n*4;const al=std.hea
 
 fn benchPrefix(nu:u64)!void{const n:usize=@intCast(nu);const al=std.heap.c_allocator;const input=try al.alloc(u32,n);defer al.free(input);const out=try al.alloc(u64,n);defer al.free(out);for(input,0..)|*p,i|p.*=mix32(@intCast(i))&1023;var t:[7]f64=undefined;var ck:u64=0;for(0..7)|r|{const st=now();ck=0;for(0..16)|pass|{var s:u64=pass;for(input,0..)|x,i|{s+=x;out[i]=s;}ck^=s;}t[r]=now()-st;}ck^=ck64(out);const m=median(&t);emit("prefix_sum",nu*16,m,@as(f64,@floatFromInt(n))*16/m/1e6,ck);}
 
-fn benchMM(nu:u64)!void{const n:usize=@intCast(nu);const nn=n*n;const al=std.heap.c_allocator;const a=try al.alloc(u32,nn);defer al.free(a);const b=try al.alloc(u32,nn);defer al.free(b);const out=try al.alloc(u64,nn);defer al.free(out);for(0..nn)|i|{a[i]=mix32(@intCast(i))&15;b[i]=mix32(@intCast(i+nn))&15;}var t:[7]f64=undefined;for(0..7)|r|{const st=now();for(0..n)|i|for(0..n)|j|{var s:u64=0;for(0..n)|k|s+=@as(u64,a[i*n+k])*b[k*n+j];out[i*n+j]=s;}t[r]=now()-st;}const m=median(&t);emit("matrix_mul",nu,m,@as(f64,@floatFromInt(n*n*n))/m/1e6,ck64(out));}
+fn benchMM(nu:u64)!void{
+    const n:usize=@intCast(nu);
+    const nn=n*n;
+    const al=std.heap.c_allocator;
+    const a=try al.alloc(u32,nn); defer al.free(a);
+    const b=try al.alloc(u32,nn); defer al.free(b);
+    const out=try al.alloc(u64,nn); defer al.free(out);
+    for(0..nn)|i|{
+        a[i]=mix32(@intCast(i))&15;
+        b[i]=mix32(@intCast(i+nn))&15;
+    }
+    var t:[7]f64=undefined;
+    for(0..7)|r|{
+        const st=now();
+        for(0..n)|i|{
+            for(0..n)|j|{
+                var s:u64=0;
+                for(0..n)|k|{
+                    s += @as(u64,a[i*n+k]) * b[k*n+j];
+                }
+                out[i*n+j]=s;
+            }
+        }
+        t[r]=now()-st;
+    }
+    const m=median(&t);
+    emit("matrix_mul",nu,m,@as(f64,@floatFromInt(n*n*n))/m/1e6,ck64(out));
+}
 
-fn fillGraph(a:[]u32,w:?[]u32,n:usize,d:usize)void{for(0..n)|i|for(0..d)|e|{const p=i*d+e;a[p]=if(e==0)@intCast((i+1)%n) else if(e==1)@intCast((i+n-1)%n) else mix32(@intCast(p))%@as(u32,@intCast(n));if(w)|ww|ww[p]=1+(mix32(0xabc00000+%@as(u32,@intCast(p)))&15);}}
+fn fillGraph(a:[]u32,w:?[]u32,n:usize,d:usize)void{
+    for(0..n)|i|{
+        for(0..d)|e|{
+            const p=i*d+e;
+            a[p]=if(e==0)
+                @intCast((i+1)%n)
+            else if(e==1)
+                @intCast((i+n-1)%n)
+            else
+                mix32(@intCast(p))%@as(u32,@intCast(n));
+            if(w)|ww|{
+                ww[p]=1+(mix32(0xabc00000+%@as(u32,@intCast(p)))&15);
+            }
+        }
+    }
+}
 fn benchBFS(nu:u64)!void{const n:usize=@intCast(nu);const d:usize=4;const passes:usize=16;const al=std.heap.c_allocator;const a=try al.alloc(u32,n*d);defer al.free(a);const dist=try al.alloc(i32,n);defer al.free(dist);const q=try al.alloc(u32,n);defer al.free(q);fillGraph(a,null,n,d);var t:[7]f64=undefined;var seen:u32=0;for(0..7)|r|{const st=now();for(0..passes)|p|{@memset(dist,-1);var h:usize=0;var tt:usize=0;dist[0]=0;q[tt]=0;tt+=1;while(h<tt){const u=q[h];h+=1;const nd=dist[u]+1;for(0..d)|e|{const v=a[@as(usize,u)*d+e];if(dist[v]<0){dist[v]=nd;q[tt]=v;tt+=1;}}}seen^=@as(u32,@intCast(tt+p));}t[r]=now()-st;}const m=median(&t);emit("bfs",nu*passes,m,@as(f64,@floatFromInt(n*d*passes))/m/1e6,ckI32(dist)^seen);}
 
 const HP=struct{d:u64,v:u32};
