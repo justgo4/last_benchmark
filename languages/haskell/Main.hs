@@ -759,7 +759,7 @@ benchBST n=do
                         else if key<ck then readArray left(fromIntegral cur)>>=walk else readArray right(fromIntegral cur)>>=walk
               cur<-walk root
               look(i+3)(if cur>=0 then xor h(fromIntegral(cur+1))else h)
-    look 0 0
+    look 0 (0::Word32)
   emit "bst"(fromIntegral n)m(fromIntegral n/m/1e6)c
 
 benchTrie :: Int -> IO ()
