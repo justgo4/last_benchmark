@@ -15,17 +15,19 @@ The canonical list lives in [SUITE_V2.json](SUITE_V2.json). It covers:
 
 Every implementation must use deterministic generated input and return the exact expected checksum. Different output with similar timing is a failed benchmark.
 
+For cross-language fairness, v2 uses a portable 32-bit `mix32` generator for ordinary algorithm/data-structure inputs, and those input arrays are prepared before timing. This avoids turning unrelated structures into a 64-bit integer-emulation benchmark on JavaScript/TypeScript and similar runtimes. `integer50` remains the deliberate wide-integer workload.
+
 ## Runtime protocol
 
 - single-threaded score unless a workload explicitly says otherwise
 - fixed deterministic input
-- input generation outside the timed region unless construction itself is the operation under test
+- deterministic input generation is outside the timed region; construction is timed only when construction is the data-structure operation under test
 - one untimed warm-up
 - seven measured rounds
 - median workload runtime
 - no relaxed floating-point semantics that change results
 - architecture-native optimization is allowed
-- process-tree RSS is sampled every 10 ms while the workload runs
+- process-tree RSS is sampled every 2 ms while the workload runs
 - both average sampled RSS and peak sampled RSS are recorded
 - each non-C workflow measures the C reference on the same runner for the same workloads
 
