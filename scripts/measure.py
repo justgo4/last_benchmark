@@ -165,9 +165,15 @@ def measure_workload(cmd, kernel, label):
     }
 
 
-def c_compile(cc, out_dir):
+def c_compile(cc, out_dir, kernels):
     source_v2 = ROOT / "benchmarks" / "v2" / "c" / "main.c"
-    source = source_v2 if source_v2.exists() else ROOT / "benchmarks" / "core" / "c" / "main.c"
+    suite_path = ROOT / "spec" / "SUITE_V2.json"
+    v2_names = set()
+    if suite_path.exists():
+        suite = json.loads(suite_path.read_text())
+        v2_names = {x["name"] for x in suite.get("workloads", [])}
+    use_v2 = source_v2.exists() and set(kernels).issubset(v2_names)
+    source = source_v2 if use_v2 else ROOT / "benchmarks" / "core" / "c" / "main.c"
     obj = out_dir / "main.o"
     binary = out_dir / "bench"
     flags = ["-O3", "-march=native", "-flto", "-DNDEBUG", "-ffp-contract=off"]
@@ -192,7 +198,7 @@ def measure_c_baseline(kernels):
         raise RuntimeError("no system C compiler available for same-run baseline")
     with tempfile.TemporaryDirectory(prefix="bench-c-baseline-") as td_name:
         td = pathlib.Path(td_name)
-        info = c_compile(cc, td)
+        info = c_compile(cc, td, kernels)
         workloads = [
             measure_workload(
                 [str(info["binary"]), kernel],
