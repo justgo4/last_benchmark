@@ -1,4 +1,6 @@
 const std = @import("std");
+extern fn bench_black_box_u64(x: u64) u64;
+
 const c = @cImport({
     @cInclude("time.h");
 });
@@ -41,9 +43,8 @@ fn benchInteger(n: u64) void {
     var checksum: u64 = 0;
     for (0..7) |r| {
         const a = now();
-        std.mem.doNotOptimizeAway(n);
-        checksum = integer50(n);
-        std.mem.doNotOptimizeAway(checksum);
+        const nn = bench_black_box_u64(n);
+        checksum = bench_black_box_u64(integer50(nn));
         t[r] = now() - a;
     }
     const m = median(&t);
@@ -109,7 +110,7 @@ noinline fn treesOnce(a:std.mem.Allocator,mx:u32)!u64{
 fn benchTrees(depth:u64)!void{
     const a=std.heap.c_allocator;_ = try treesOnce(a,6);
     var t:[7]f64=undefined;var checksum:u64=0;
-    for(0..7)|r|{std.mem.doNotOptimizeAway(depth);const s=now();checksum=try treesOnce(a,@intCast(depth));std.mem.doNotOptimizeAway(checksum);t[r]=now()-s;}
+    for(0..7)|r|{const dd=bench_black_box_u64(depth);const s=now();checksum=bench_black_box_u64(try treesOnce(a,@intCast(dd)));t[r]=now()-s;}
     const m=median(&t);emit("binary_trees",depth,m,1.0/m,checksum);
 }
 noinline fn mandelbrot(w:u32,max_iter:u32)u64{
@@ -126,7 +127,7 @@ noinline fn mandelbrot(w:u32,max_iter:u32)u64{
 }
 fn benchMandel(width:u64)void{
     const w:u32=@intCast(width);_ = mandelbrot(128,20);var t:[7]f64=undefined;var checksum:u64=0;
-    for(0..7)|r|{std.mem.doNotOptimizeAway(w);const s=now();checksum=mandelbrot(w,50);std.mem.doNotOptimizeAway(checksum);t[r]=now()-s;}
+    for(0..7)|r|{const ww=bench_black_box_u64(w);const s=now();checksum=bench_black_box_u64(mandelbrot(@intCast(ww),50));t[r]=now()-s;}
     const m=median(&t);const pix:u64=@as(u64,w)*w;emit("mandelbrot",pix,m,@as(f64,@floatFromInt(pix))/m/1e6,checksum);
 }
 fn run(k:[]const u8,size:u64)!void{
