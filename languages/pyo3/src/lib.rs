@@ -12,13 +12,13 @@ const P:[u8;23]=[97,108,112,104,97,34,98,101,116,97,92,103,97,109,109,97,10,9,1,
 fn escape(input:&[u8],out:&mut[u8])->usize{const H:&[u8;16]=b"0123456789abcdef";let mut j=0;out[j]=34;j+=1;for &c in input{match c{34=>{out[j]=92;out[j+1]=34;j+=2},92=>{out[j]=92;out[j+1]=92;j+=2},8=>{out[j]=92;out[j+1]=98;j+=2},12=>{out[j]=92;out[j+1]=102;j+=2},10=>{out[j]=92;out[j+1]=110;j+=2},13=>{out[j]=92;out[j+1]=114;j+=2},9=>{out[j]=92;out[j+1]=116;j+=2},0..=31=>{out[j]=92;out[j+1]=117;out[j+2]=48;out[j+3]=48;out[j+4]=H[(c>>4)as usize];out[j+5]=H[(c&15)as usize];j+=6},_=>{out[j]=c;j+=1}}}out[j]=34;j+1}
 
 #[pyfunction]
-fn run(kernel:&str)->PyResult<(String,u64,f64,f64,u64)>{
+fn run(kernel:&str,size:u64)->PyResult<(String,u64,f64,f64,u64)>{
     let mut t=[0.0;7];let mut checksum=0u64;
     match kernel{
-        "integer50"=>{let n=200_000_000u64;let _=integer50(n/20+1);for r in 0..7{let a=Instant::now();checksum=integer50(n);t[r]=a.elapsed().as_secs_f64();}let m=median(t);Ok((kernel.into(),n,m,n as f64/m/1e6,checksum))}
-        "json_escape"=>{let n=16_000_000usize;let mut input=vec![0u8;n];for i in 0..n{input[i]=P[i%23]}let mut out=vec![0u8;n*6+2];let mut outn=escape(&input,&mut out);for r in 0..7{let a=Instant::now();outn=escape(&input,&mut out);t[r]=a.elapsed().as_secs_f64();}checksum=outn as u64+out[..outn].iter().map(|&x|x as u64).sum::<u64>();let m=median(t);Ok((kernel.into(),n as u64,m,n as f64/m/1e9,checksum))}
-        "binary_trees"=>{let d=16u64;let _=trees_once(6);for r in 0..7{let a=Instant::now();checksum=trees_once(d as u32);t[r]=a.elapsed().as_secs_f64();}let m=median(t);Ok((kernel.into(),d,m,1.0/m,checksum))}
-        "mandelbrot"=>{let w=1600u64;let _=mandel(128,20);for r in 0..7{let a=Instant::now();checksum=mandel(w as u32,50);t[r]=a.elapsed().as_secs_f64();}let m=median(t);let pix=w*w;Ok((kernel.into(),pix,m,pix as f64/m/1e6,checksum))}
+        "integer50"=>{let n=size;let _=integer50(n/20+1);for r in 0..7{let a=Instant::now();checksum=integer50(n);t[r]=a.elapsed().as_secs_f64();}let m=median(t);Ok((kernel.into(),n,m,n as f64/m/1e6,checksum))}
+        "json_escape"=>{let n=size as usize;let mut input=vec![0u8;n];for i in 0..n{input[i]=P[i%23]}let mut out=vec![0u8;n*6+2];let mut outn=escape(&input,&mut out);for r in 0..7{let a=Instant::now();outn=escape(&input,&mut out);t[r]=a.elapsed().as_secs_f64();}checksum=outn as u64+out[..outn].iter().map(|&x|x as u64).sum::<u64>();let m=median(t);Ok((kernel.into(),n as u64,m,n as f64/m/1e9,checksum))}
+        "binary_trees"=>{let d=size;let _=trees_once(6);for r in 0..7{let a=Instant::now();checksum=trees_once(d as u32);t[r]=a.elapsed().as_secs_f64();}let m=median(t);Ok((kernel.into(),d,m,1.0/m,checksum))}
+        "mandelbrot"=>{let w=size;let _=mandel(128,20);for r in 0..7{let a=Instant::now();checksum=mandel(w as u32,50);t[r]=a.elapsed().as_secs_f64();}let m=median(t);let pix=w*w;Ok((kernel.into(),pix,m,pix as f64/m/1e6,checksum))}
         _=>Err(pyo3::exceptions::PyValueError::new_err("unknown kernel"))
     }
 }
