@@ -21,7 +21,7 @@ fn median(v: *[7]f64) f64 {
 fn emit(k: []const u8, units: u64, sec: f64, rate: f64, checksum: u64) void {
     std.debug.print("RESULT kernel={s} units={d} rounds=7 seconds={d:.9} rate={d:.6} checksum={d}\n", .{ k, units, sec, rate, checksum });
 }
-fn integer50(n: u64) u64 {
+noinline fn integer50(n: u64) u64 {
     const mask: u64 = (@as(u64, 1) << 50) - 1;
     var x: u64 = 88172645463325252 & mask;
     var sum: u64 = 0;
@@ -41,7 +41,9 @@ fn benchInteger(n: u64) void {
     var checksum: u64 = 0;
     for (0..7) |r| {
         const a = now();
+        std.mem.doNotOptimizeAway(n);
         checksum = integer50(n);
+        std.mem.doNotOptimizeAway(checksum);
         t[r] = now() - a;
     }
     const m = median(&t);
@@ -49,7 +51,7 @@ fn benchInteger(n: u64) void {
 }
 
 const pattern = [_]u8{ 97,108,112,104,97,34,98,101,116,97,92,103,97,109,109,97,10,9,1,120,121,122,47 };
-fn jsonEscape(input: []const u8, out: []u8) usize {
+noinline fn jsonEscape(input: []const u8, out: []u8) usize {
     const hex = "0123456789abcdef";
     var j: usize = 0;
     out[j] = '"'; j += 1;
@@ -78,7 +80,7 @@ fn benchJson(bytes_u: u64) !void {
     for (input, 0..) |*p,i| p.* = pattern[i % pattern.len];
     var outn = jsonEscape(input,out);
     var t:[7]f64=undefined;
-    for (0..7)|r| { const s=now(); outn=jsonEscape(input,out); t[r]=now()-s; }
+    for (0..7)|r| { std.mem.doNotOptimizeAway(input); const s=now(); outn=jsonEscape(input,out); std.mem.doNotOptimizeAway(outn); t[r]=now()-s; }
     var checksum:u64=@intCast(outn);
     for(out[0..outn])|b| checksum += b;
     const m=median(&t);
@@ -93,7 +95,7 @@ fn makeTree(a:std.mem.Allocator,d:u32)!*Node{
 }
 fn checkTree(n:?*const Node)u64{if(n)|p| return 1+checkTree(p.l)+checkTree(p.r); return 0;}
 fn freeTree(a:std.mem.Allocator,n:?*Node)void{if(n)|p|{freeTree(a,p.l);freeTree(a,p.r);a.destroy(p);}}
-fn treesOnce(a:std.mem.Allocator,mx:u32)!u64{
+noinline fn treesOnce(a:std.mem.Allocator,mx:u32)!u64{
     const stretch=try makeTree(a,mx+1);var total=checkTree(stretch);freeTree(a,stretch);
     const long=try makeTree(a,mx);
     var d:u32=4;
@@ -107,10 +109,10 @@ fn treesOnce(a:std.mem.Allocator,mx:u32)!u64{
 fn benchTrees(depth:u64)!void{
     const a=std.heap.c_allocator;_ = try treesOnce(a,6);
     var t:[7]f64=undefined;var checksum:u64=0;
-    for(0..7)|r|{const s=now();checksum=try treesOnce(a,@intCast(depth));t[r]=now()-s;}
+    for(0..7)|r|{std.mem.doNotOptimizeAway(depth);const s=now();checksum=try treesOnce(a,@intCast(depth));std.mem.doNotOptimizeAway(checksum);t[r]=now()-s;}
     const m=median(&t);emit("binary_trees",depth,m,1.0/m,checksum);
 }
-fn mandelbrot(w:u32,max_iter:u32)u64{
+noinline fn mandelbrot(w:u32,max_iter:u32)u64{
     var sum:u64=0;var y:u32=0;
     while(y<w):(y+=1){
         const ci=-1.5+3.0*@as(f64,@floatFromInt(y))/@as(f64,@floatFromInt(w-1));
@@ -124,7 +126,7 @@ fn mandelbrot(w:u32,max_iter:u32)u64{
 }
 fn benchMandel(width:u64)void{
     const w:u32=@intCast(width);_ = mandelbrot(128,20);var t:[7]f64=undefined;var checksum:u64=0;
-    for(0..7)|r|{const s=now();checksum=mandelbrot(w,50);t[r]=now()-s;}
+    for(0..7)|r|{std.mem.doNotOptimizeAway(w);const s=now();checksum=mandelbrot(w,50);std.mem.doNotOptimizeAway(checksum);t[r]=now()-s;}
     const m=median(&t);const pix:u64=@as(u64,w)*w;emit("mandelbrot",pix,m,@as(f64,@floatFromInt(pix))/m/1e6,checksum);
 }
 fn run(k:[]const u8,size:u64)!void{
