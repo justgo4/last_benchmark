@@ -77,7 +77,16 @@ Toolchains resolve to the newest stable release available at run time. A dated r
 
 ## Status
 
-The benchmark harness, public-safety policy/scanner, expected checksums, and complete seven-workload C reference are implemented. Additional language ports enter the benchmark only after checksum parity is verified.
+All 21 requested technologies now have benchmark implementations and have completed a successful GitHub Actions validation run with checksum parity on the four primary workloads:
+
+- C, C++, Cython, nanobind, PyO3
+- Rust, Zig, Go, Nim, Swift, Mojo
+- Haskell, Racket, Chez Scheme, Gambit Scheme, Gerbil Scheme, Common Lisp (SBCL)
+- Java, Scala, TypeScript, JavaScript
+
+The public-safety scanner also passes on the current main branch. A benchmark result is considered valid only when all requested workload checksums match `spec/EXPECTED.json`; successful compilation alone is not sufficient.
+
+Per-language workflow artifacts contain the measured compile time, intermediate/final artifact sizes, workload runtime, maximum RSS, compiler/runtime version, CPU model, OS, and optimization flags.
 
 Run the C reference locally with:
 
