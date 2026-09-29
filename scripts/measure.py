@@ -42,6 +42,69 @@ def tree_bytes(path):
         return 0
     return sum(p.stat().st_size for p in path.rglob("*") if p.is_file())
 
+def parse_result(proc, label):
+    result = None
+    combined_output = (proc.stdout or "") + "\n" + (proc.stderr or "")
+    for line in combined_output.splitlines():
+        m = RESULT_RE.match(line.strip())
+        if m:
+            result = m.groupdict()
+    if result is None:
+        raise RuntimeError(
+            f"{label}: no RESULT line\nstdout={proc.stdout}\nstderr={proc.stderr}")
+    return result
+
+def measure_c_baseline(kernels):
+    cc = shutil.which("gcc") or shutil.which("cc")
+    if not cc:
+        raise RuntimeError("no system C compiler available for same-run baseline")
+    with tempfile.TemporaryDirectory(prefix="bench-c-baseline-") as td:
+        td = pathlib.Path(td)
+        binary = td / "bench"
+        t0 = time.perf_counter()
+        run([
+            cc, "-O3", "-march=native", "-flto", "-DNDEBUG",
+            "-ffp-contract=off",
+            str(ROOT / "benchmarks" / "core" / "c" / "main.c"),
+            "-o", str(binary),
+        ])
+        compile_seconds = time.perf_counter() - t0
+        compiler = run([cc, "--version"]).stdout.splitlines()[0].strip()
+        workloads = []
+        for kernel in kernels:
+            with tempfile.NamedTemporaryFile(prefix="bench-c-rss-", delete=False) as tmp:
+                rss_path = pathlib.Path(tmp.name)
+            try:
+                proc = run([
+                    "/usr/bin/time", "-f", "%M", "-o", str(rss_path),
+                    str(binary), kernel,
+                ])
+                result = parse_result(proc, f"c_baseline/{kernel}")
+                checksum = int(result["checksum"])
+                expected = int(EXPECTED[kernel])
+                if checksum != expected:
+                    raise RuntimeError(
+                        f"c_baseline/{kernel}: checksum mismatch "
+                        f"expected={expected} actual={checksum}")
+                workloads.append({
+                    "kernel": result["kernel"],
+                    "units": int(result["units"]),
+                    "rounds": int(result["rounds"]),
+                    "run_seconds": float(result["seconds"]),
+                    "rate": float(result["rate"]),
+                    "checksum": checksum,
+                    "max_rss_kib": int(rss_path.read_text().strip()),
+                })
+            finally:
+                rss_path.unlink(missing_ok=True)
+        return {
+            "compiler": compiler,
+            "optimization": "-O3 -march=native -flto -DNDEBUG -ffp-contract=off",
+            "compile_seconds": compile_seconds,
+            "final_bytes": binary.stat().st_size,
+            "workloads": workloads,
+        }
+
 def cpu_model():
     p = pathlib.Path("/proc/cpuinfo")
     if p.exists():
@@ -82,16 +145,7 @@ def main():
                 "/usr/bin/time", "-f", "%M", "-o", str(rss_path),
                 "bash", str(lang_dir / "run.sh"), kernel,
             ])
-            result = None
-            combined_output = (proc.stdout or "") + "\n" + (proc.stderr or "")
-            for line in combined_output.splitlines():
-                m = RESULT_RE.match(line.strip())
-                if m:
-                    result = m.groupdict()
-            if result is None:
-                raise RuntimeError(
-                    f"{args.language}/{kernel}: no RESULT line\n"
-                    f"stdout={proc.stdout}\nstderr={proc.stderr}")
+            result = parse_result(proc, f"{args.language}/{kernel}")
             checksum = int(result["checksum"])
             expected = int(EXPECTED[kernel])
             if checksum != expected:
@@ -110,6 +164,18 @@ def main():
         finally:
             rss_path.unlink(missing_ok=True)
 
+    selected_kernels = tuple(args.kernels or default_kernels)
+    if args.language == "c":
+        c_baseline = {
+            "compiler": version,
+            "optimization": manifest["optimization"],
+            "compile_seconds": compile_seconds,
+            "final_bytes": tree_bytes(build_root / "final"),
+            "workloads": workloads,
+        }
+    else:
+        c_baseline = measure_c_baseline(selected_kernels)
+
     result = {
         "language": args.language,
         "display_name": manifest["display_name"],
@@ -121,6 +187,7 @@ def main():
         "cpu": cpu_model(),
         "os": platform.platform(),
         "workloads": workloads,
+        "c_baseline": c_baseline,
     }
 
     out = ROOT / "results"
