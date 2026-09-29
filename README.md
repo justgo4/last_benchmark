@@ -126,6 +126,19 @@ To control for GitHub-hosted runner variation, every language is normalized agai
 | Chez Scheme | 3.99× | 6.48× | 6.27× | 0.44× | 14.23× |
 | Gerbil Scheme | 4.51× | 21.50× | 4.19× | 0.64× | 7.17× |
 
+
+### Why C is not first in the composite
+
+The composite deliberately gives the four workloads equal weight, so a very large advantage in one kernel can outweigh smaller losses in the other three. That is exactly what happens above; it does **not** mean that the languages ahead of C are generally faster than C.
+
+- **Haskell (0.45× composite):** this is dominated by `binary_trees = 0.0163× C`. Haskell is actually slower than same-run C on the other three kernels: `integer50 = 1.381×`, `json_escape = 1.239×`, and `mandelbrot = 1.513×`. There is also an important representation caveat: the current Haskell `Leaf` is a nullary constructor, so leaf values can be shared/represented without a distinct heap allocation for every leaf, whereas the C reference allocates a `Node` with `malloc` even at depth zero. The checksum is equivalent, but the allocation work is not strictly equivalent. Therefore Haskell's composite must **not** be interpreted as “Haskell is 2.2× faster than C” or as a fair allocator comparison.
+- **Scala (0.72×) and Java (0.75×):** both results are also driven mainly by `binary_trees` (`0.260×` and `0.267× C`). JVM object allocation can be extremely cheap through thread-local/bump-pointer allocation, and reclamation can be amortized or deferred by the GC; the C version pays recursive `malloc/free` cost inside the timed workload. The trade-off is visible in memory: peak RSS is about **795 MiB for Scala**, **372 MiB for Java**, versus **39.6 MiB for C**.
+- **Nim (0.94×):** the advantage is much smaller and again comes mainly from `binary_trees = 0.613× C`, plus a small Mandelbrot edge (`0.973×`). Its `integer50` result is effectively tied with C (`0.999×`) and `json_escape` is slower (`1.293×`).
+- If `binary_trees` is removed and only `integer50`, `json_escape`, and `mandelbrot` are geometrically averaged, the four technologies that beat C in the full composite become **Haskell 1.373×, Scala 1.019×, Java 1.061×, and Nim 1.079×**, while C remains `1.000×`. This confirms that their full-score lead is allocator/representation-sensitive rather than a broad compute lead. Cython is `0.958×` on those three kernels, so C is still not guaranteed to win every code-generation pattern.
+
+The useful conclusion is therefore workload-specific: **C/C++ are the most consistently close to the baseline across all four kernels and combine that consistency with very low memory use and tiny native artifacts.** The composite is a compact summary, not a universal “fastest language” verdict.
+
+
 ### Compile / build time
 
 Toolchain installation and dependency download time are excluded. JavaScript has no source-level compile step and is omitted.
