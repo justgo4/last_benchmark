@@ -27,8 +27,11 @@ object Bench:
     val t=new Array[Double](7)
     var c=0L
     var r=0
-    while r<7 do
-      val a=now(); c=integer50(n); t(r)=now()-a; r+=1
+    while r < 7 do
+      val a = now()
+      c = integer50(n)
+      t(r) = now() - a
+      r += 1
     val m=median(t); emit("integer50",n,m,n.toDouble/m/1e6,c)
 
   val pattern=Array[Byte](97,108,112,104,97,34,98,101,116,97,92,103,97,109,109,97,10,9,1,120,121,122,47)
@@ -64,8 +67,11 @@ object Bench:
     var outn=jsonEscape(in,out)
     val t=new Array[Double](7)
     var r=0
-    while r<7 do
-      val a=now();outn=jsonEscape(in,out);t(r)=now()-a;r+=1
+    while r < 7 do
+      val a = now()
+      outn = jsonEscape(in,out)
+      t(r) = now() - a
+      r += 1
     var c=outn.toLong;i=0
     while i < outn do
       c += out(i) & 255
