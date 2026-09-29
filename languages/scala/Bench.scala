@@ -71,7 +71,7 @@ object Bench:
         while i<mid do {dst(k)=src(i);i+=1;k+=1}
         while j<hi do {dst(k)=src(j);j+=1;k+=1}
         lo+=2*w
-      val z=src;src=dst;dst=z;flip=!flip
+      val z=src;src=dst;dst=z;flip = !flip
       if w>n/2 then w=n else w*=2
     if flip then System.arraycopy(src,0,a,0,n)
   def benchMerge(n0:Long):Unit =
@@ -196,9 +196,9 @@ object Bench:
   def mandel(w:Int,mi:Int):Long =
     var sum=0L;var y=0
     while y<w do
-      val ci=-1.5+3.0*y/(w-1.0);var x=0
+      val ci= -1.5+3.0*y/(w-1.0);var x=0
       while x<w do
-        val cr=-2+3.0*x/(w-1.0);var zr=0.0;var zi=0.0;var it=0;var done=false
+        val cr= -2+3.0*x/(w-1.0);var zr=0.0;var zi=0.0;var it=0;var done=false
         while it<mi && !done do
           val aa=zr*zr;val bb=zi*zi
           if aa+bb>4 then done=true else {val nz=aa-bb+cr;zi=2*zr*zi+ci;zr=nz;it+=1}
@@ -284,9 +284,9 @@ object Bench:
   def benchBST(n0:Long):Unit =
     val n=n0.toInt;val in=Array.tabulate(n)(i=>mix32(i));val keys=new Array[Int](n);val left=new Array[Int](n);val right=new Array[Int](n);val t=new Array[Double](7);var c=0;var r=0
     while r<7 do
-      val s=now();var root=-1;var i=0
+      val s=now();var root= -1;var i=0
       while i<n do
-        val key=in(i);keys(i)=key;left(i)=-1;right(i)=-1
+        val key=in(i);keys(i)=key;left(i)= -1;right(i)= -1
         if root<0 then root=i else
           var cur=root;var done=false
           while !done do
