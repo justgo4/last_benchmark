@@ -101,7 +101,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md results/summary_v2.json results/summary_v2.csv docs/v2-*.svg
+          git add README.md docs/v2-*.svg
+          git add -f results/summary_v2.json results/summary_v2.csv
           if git diff --cached --quiet; then
             echo "No final-result changes to commit"
             exit 0
