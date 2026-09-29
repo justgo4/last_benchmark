@@ -107,7 +107,7 @@ proc bs(a:seq[uint32],x:uint32):int =
   while l<h:
     let m=l+(h-l) div 2
     if a[m]<x:l=m+1 else:h=m
-  if l<a.len and a[l]==x:l else:-1
+  if l<a.len and a[l]==x:l else: -1
 proc benchBS(nu:uint64)=
   let n=int(nu);let nq=n*4
   var a=newSeq[uint32](n);var q=newSeq[uint32](nq)
@@ -430,7 +430,7 @@ proc defSize(k:string):uint64 =
   of "linked_list":4000000'u64
   of "queue_ring":10000000'u64
   of "bst":300000'u64
-  else:0'u64
+  else: 0'u64
 
 let k=if paramCount()>=1:paramStr(1) else:"integer50"
 let n=if paramCount()>=2:uint64(parseUInt(paramStr(2))) else:defSize(k)
