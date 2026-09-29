@@ -194,7 +194,7 @@ proc benchBFS(n0:uint64,r:int)=
   for z in 0..<r:
     let st=now()
     for p in 0..<passes:
-      for i in 0..<n:dist[i]=-1
+      for i in 0..<n:dist[i] = -1
       var h=0
       var tt=0;dist[0]=0;q[tt]=0;inc tt
       while h<tt:
@@ -454,9 +454,9 @@ proc benchBST(n0:uint64,r:int)=
   var c=0'u32
   for z in 0..<r:
     let st=now()
-    var root=-1'i32
+    var root = -1'i32
     for i in 0..<n:
-      let key=inp[i];keys[i]=key;l[i]=-1;rr[i]=-1
+      let key=inp[i];keys[i]=key;l[i] = -1;rr[i] = -1
       if root<0:root=int32(i)
       else:
         var cur=root
@@ -492,7 +492,7 @@ proc benchTrie(n0:uint64,r:int)=
   var c=0'u32
   for z in 0..<r:
     let st=now()
-    for i in 0..<ch.len:ch[i]=-1
+    for i in 0..<ch.len:ch[i] = -1
     for i in 0..<term.len:term[i]=0
     var used=1
     for w in words:
