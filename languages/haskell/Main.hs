@@ -6,7 +6,7 @@ import Data.List (sort)
 import GHC.Clock (getMonotonicTimeNSec)
 import System.Environment (getArgs)
 import Text.Printf
-import Control.Monad (replicateM)
+import Control.Monad (replicateM, when)
 import Control.Exception (evaluate)
 import Data.Array.IO
 import Data.Array.MArray
