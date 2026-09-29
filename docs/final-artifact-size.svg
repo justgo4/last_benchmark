@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="649" viewBox="0 0 980 649">
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#24292f}
+.title{font-size:22px;font-weight:700}.sub{font-size:13px;fill:#57606a}.label{font-size:13px}.value{font-size:12px;font-weight:600}.bar{fill:#0969da}.grid{stroke:#d0d7de;stroke-width:1}
+@media (prefers-color-scheme:dark){text{fill:#f0f6fc}.sub{fill:#8c959f}.grid{stroke:#30363d}.bar{fill:#58a6ff}}
+</style>
+<text x="20" y="30" class="title">Final runnable artifact size</text>
+<text x="20" y="52" class="sub">Log-scaled bars. VM/runtime dependencies are not bundled unless the language build naturally includes them.</text><text x="223" y="97" text-anchor="end" class="label">Java</text>
+<rect x="235" y="85" width="35.0" height="16" rx="2" class="bar"/>
+<text x="277" y="97" class="value">6.1 KiB</text><text x="223" y="122" text-anchor="end" class="label">JavaScript (Node.js)</text>
+<rect x="235" y="110" width="57.2" height="16" rx="2" class="bar"/>
+<text x="299.17620876029446" y="122" class="value">8.4 KiB</text><text x="223" y="147" text-anchor="end" class="label">TypeScript</text>
+<rect x="235" y="135" width="78.6" height="16" rx="2" class="bar"/>
+<text x="320.5779193293138" y="147" class="value">11.4 KiB</text><text x="223" y="172" text-anchor="end" class="label">Chez Scheme</text>
+<rect x="235" y="160" width="100.8" height="16" rx="2" class="bar"/>
+<text x="342.8408374108501" y="172" class="value">15.7 KiB</text><text x="223" y="197" text-anchor="end" class="label">C (GCC)</text>
+<rect x="235" y="185" width="152.1" height="16" rx="2" class="bar"/>
+<text x="394.06828139939375" y="197" class="value">32.5 KiB</text><text x="223" y="222" text-anchor="end" class="label">C++ (GCC)</text>
+<rect x="235" y="210" width="152.4" height="16" rx="2" class="bar"/>
+<text x="394.4129477933058" y="222" class="value">32.7 KiB</text><text x="223" y="247" text-anchor="end" class="label">Swift</text>
+<rect x="235" y="235" width="178.8" height="16" rx="2" class="bar"/>
+<text x="420.77839348546627" y="247" class="value">47.6 KiB</text><text x="223" y="272" text-anchor="end" class="label">Mojo</text>
+<rect x="235" y="260" width="191.7" height="16" rx="2" class="bar"/>
+<text x="433.66318825083033" y="272" class="value">57.1 KiB</text><text x="223" y="297" text-anchor="end" class="label">Nim</text>
+<rect x="235" y="285" width="209.3" height="16" rx="2" class="bar"/>
+<text x="451.26546751601086" y="297" class="value">73.4 KiB</text><text x="223" y="322" text-anchor="end" class="label">Cython</text>
+<rect x="235" y="310" width="213.9" height="16" rx="2" class="bar"/>
+<text x="455.855681764985" y="322" class="value">78.4 KiB</text><text x="223" y="347" text-anchor="end" class="label">nanobind</text>
+<rect x="235" y="335" width="236.7" height="16" rx="2" class="bar"/>
+<text x="478.66337228548684" y="347" class="value">108.5 KiB</text><text x="223" y="372" text-anchor="end" class="label">PyO3</text>
+<rect x="235" y="360" width="334.9" height="16" rx="2" class="bar"/>
+<text x="576.9445244894105" y="372" class="value">439.6 KiB</text><text x="223" y="397" text-anchor="end" class="label">Go</text>
+<rect x="235" y="385" width="421.9" height="16" rx="2" class="bar"/>
+<text x="663.8808533671627" y="397" class="value">1516.2 KiB</text><text x="223" y="422" text-anchor="end" class="label">Haskell (GHC)</text>
+<rect x="235" y="410" width="428.6" height="16" rx="2" class="bar"/>
+<text x="670.5582372860254" y="422" class="value">1667.4 KiB</text><text x="223" y="447" text-anchor="end" class="label">Rust</text>
+<rect x="235" y="435" width="446.1" height="16" rx="2" class="bar"/>
+<text x="688.1233715741698" y="447" class="value">2141.3 KiB</text><text x="223" y="472" text-anchor="end" class="label">Zig</text>
+<rect x="235" y="460" width="482.3" height="16" rx="2" class="bar"/>
+<text x="724.3424942136553" y="472" class="value">3586.4 KiB</text><text x="223" y="497" text-anchor="end" class="label">Racket</text>
+<rect x="235" y="485" width="520.5" height="16" rx="2" class="bar"/>
+<text x="762.4924969126442" y="497" class="value">6174.3 KiB</text><text x="223" y="522" text-anchor="end" class="label">Scala 3</text>
+<rect x="235" y="510" width="551.5" height="16" rx="2" class="bar"/>
+<text x="793.5230017578187" y="522" class="value">9604.8 KiB</text><text x="223" y="547" text-anchor="end" class="label">Gambit Scheme</text>
+<rect x="235" y="535" width="553.7" height="16" rx="2" class="bar"/>
+<text x="795.6984984445913" y="547" class="value">9907.0 KiB</text><text x="223" y="572" text-anchor="end" class="label">Gerbil Scheme</text>
+<rect x="235" y="560" width="589.4" height="16" rx="2" class="bar"/>
+<text x="831.3542951371999" y="572" class="value">16460.6 KiB</text><text x="223" y="597" text-anchor="end" class="label">Common Lisp (SBCL)</text>
+<rect x="235" y="585" width="645.0" height="16" rx="2" class="bar"/>
+<text x="885" y="597" class="value">36355.9 KiB</text></svg>
