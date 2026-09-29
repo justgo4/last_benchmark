@@ -30,9 +30,8 @@ integer50 n = go n (88172645463325252 .&. mask) 0
           !s1 = (s + (x4 `xor` (x4 `shiftR` 17))) .&. mask
       in go (i-1) x4 s1
 
-benchInteger :: IO ()
-benchInteger = do
-  let n=200000000
+benchInteger :: Word64 -> IO ()
+benchInteger n = do
   let !_ = integer50 (n `div` 20 + 1)
   pairs <- replicateM 7 $ do
     a <- now
@@ -61,10 +60,9 @@ esc c = case c of
 jsonEscape :: B.ByteString -> B.ByteString
 jsonEscape bs = BL.toStrict $ BB.toLazyByteString $ BB.word8 34 <> B.foldl' (\acc c -> acc <> esc c) mempty bs <> BB.word8 34
 
-benchJson :: IO ()
-benchJson = do
-  let n=16000000
-      input=B.pack (take n (cycle patternBytes))
+benchJson :: Int -> IO ()
+benchJson n = do
+  let input=B.pack (take n (cycle patternBytes))
       warm=jsonEscape input
   B.length warm `seq` pure ()
   pairs <- replicateM 7 $ do
@@ -94,9 +92,8 @@ treesOnce mx =
                           !s=sum [checkTree(makeTree d) | _<-[1..iters::Int]]
                       in loop (d+2) (tot+s)
   in loop 4 base + checkTree longl
-benchTrees :: IO ()
-benchTrees = do
-  let depth=16
+benchTrees :: Int -> IO ()
+benchTrees depth = do
   treesOnce 6 `seq` pure ()
   pairs <- replicateM 7 $ do
     a <- now
@@ -120,9 +117,8 @@ mandelbrot w maxIter = goY 0 0
       | it>=maxIter=it
       | zr*zr+zi*zi>4.0=it
       | otherwise=let nzr=zr*zr-zi*zi+cr; nzi=2*zr*zi+ci in iter cr ci nzr nzi (it+1)
-benchMandel :: IO ()
-benchMandel = do
-  let w=1600
+benchMandel :: Int -> IO ()
+benchMandel w = do
   mandelbrot 128 20 `seq` pure ()
   pairs <- replicateM 7 $ do
     a <- now
@@ -134,10 +130,18 @@ benchMandel = do
 
 main :: IO ()
 main = do
-  a<-getArgs
-  case if null a then "integer50" else head a of
-    "integer50" -> benchInteger
-    "json_escape" -> benchJson
-    "binary_trees" -> benchTrees
-    "mandelbrot" -> benchMandel
+  a <- getArgs
+  let k = if null a then "integer50" else head a
+      size = if length a > 1 then read (a !! 1) else
+        case k of
+          "integer50" -> 200000000
+          "json_escape" -> 16000000
+          "binary_trees" -> 16
+          "mandelbrot" -> 1600
+          _ -> 0
+  case k of
+    "integer50" -> benchInteger (fromIntegral size)
+    "json_escape" -> benchJson size
+    "binary_trees" -> benchTrees size
+    "mandelbrot" -> benchMandel size
     _ -> error "unknown kernel"
