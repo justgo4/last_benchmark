@@ -473,34 +473,51 @@
         (setf (aref ts r) (- (now-s) st))))
     (let ((m (median7 ts))) (emit "bst" n m (/ n m 1d6) c))))
 
+(declaim (notinline trie-once))
+(defun trie-once (ch term words n passes mx)
+  (fill ch -1)
+  (fill term 0)
+  (let ((used 1))
+    (dotimes (i n)
+      (let ((word (aref words i)) (node 0))
+        (loop for sh from 28 downto 0 by 4 do
+          (let* ((cc (logand (ash word (- sh)) 15))
+                 (p (+ (* node 16) cc))
+                 (v (aref ch p)))
+            (when (< v 0)
+              (setf v used
+                    (aref ch p) used)
+              (incf used))
+            (setf node v)))
+        (setf (aref term node) 1)))
+    (let ((h used))
+      (dotimes (p passes)
+        (loop for i from 0 below n by 2 do
+          (let ((word (aref words i)) (node 0))
+            (loop for sh from 28 downto 0 by 4 while (>= node 0) do
+              (setf node
+                    (aref ch
+                          (+ (* node 16)
+                             (logand (ash word (- sh)) 15)))))
+            (when (and (>= node 0) (/= (aref term node) 0))
+              (setf h (logxor h (+ node 1 p)))))))
+      (u32 h))))
+
 (defun bench-trie ()
   (let* ((n 100000) (passes 32) (mx (+ 1 (* n 8)))
          (ch (make-array (* mx 16) :element-type '(signed-byte 32)))
          (term (make-array mx :element-type '(unsigned-byte 8)))
          (words (make-array n :element-type '(unsigned-byte 32)))
-         (ts (make-array 7 :element-type 'double-float)) (c 0))
-    (dotimes (i n) (setf (aref words i) (mix32 i)))
+         (ts (make-array 7 :element-type 'double-float))
+         (checksum 0))
+    (dotimes (i n)
+      (setf (aref words i) (mix32 i)))
     (dotimes (r 7)
-      (let ((st (now-s))) (fill ch -1) (fill term 0)
-        (let ((used 1))
-          (dotimes (i n)
-            (let ((word (aref words i)) (node 0))
-              (loop for sh from 28 downto 0 by 4 do
-                (let* ((cc (logand (ash word (- sh)) 15)) (p (+ (* node 16) cc)) (v (aref ch p)))
-                  (when (< v 0) (setf v used (aref ch p) used) (incf used))
-                  (setf node v)))
-              (setf (aref term node) 1)))
-          (let ((h used))
-            (dotimes (p passes)
-              (loop for i from 0 below n by 2 do
-                (let ((word (aref words i)) (node 0))
-                  (loop for sh from 28 downto 0 by 4 while (>= node 0) do
-                    (setf node (aref ch (+ (* node 16) (logand (ash word (- sh)) 15)))))
-                  (when (and (>= node 0) (/= (aref term node) 0))
-                    (setf h (logxor h (+ node 1 p))))))
-            (setf c (u32 h))))
+      (let ((st (now-s)))
+        (setf checksum (trie-once ch term words n passes mx))
         (setf (aref ts r) (- (now-s) st))))
-    (let ((m (median7 ts))) (emit "trie" (* n passes) m (/ (* n passes) m 1d6) c)))))
+    (let ((m (median7 ts)))
+      (emit "trie" (* n passes) m (/ (* n passes) m 1d6) checksum))))
 
 (defun bench (k)
   (cond
