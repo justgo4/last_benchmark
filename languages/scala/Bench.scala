@@ -57,7 +57,9 @@ object Bench:
     val n=16000000
     val in=new Array[Byte](n)
     var i=0
-    while i<n do in(i)=pattern(i%pattern.length);i+=1
+    while i < n do
+      in(i) = pattern(i % pattern.length)
+      i += 1
     val out=new Array[Byte](n*6+2)
     var outn=jsonEscape(in,out)
     val t=new Array[Double](7)
@@ -65,7 +67,9 @@ object Bench:
     while r<7 do
       val a=now();outn=jsonEscape(in,out);t(r)=now()-a;r+=1
     var c=outn.toLong;i=0
-    while i<outn do c += out(i)&255;i+=1
+    while i < outn do
+      c += out(i) & 255
+      i += 1
     val m=median(t);emit("json_escape",n,m,n.toDouble/m/1e9,c)
 
   final class Node(val l:Node,val r:Node)
@@ -78,7 +82,9 @@ object Bench:
     while d<=mx do
       val iters=1 << (mx-d+4)
       var s=0L;var i=0
-      while i<iters do s += checkTree(makeTree(d));i+=1
+      while i < iters do
+        s += checkTree(makeTree(d))
+        i += 1
       total+=s;d+=2
     total+checkTree(longl)
   def benchTrees():Unit =
