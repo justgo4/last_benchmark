@@ -1,7 +1,7 @@
 {
   "display_name": "Mojo",
   "has_compile_step": true,
-  "optimization": "mojo build -O 3; std.collections.List v2 kernels; benchmark v2 strict track",
+  "optimization": "Latest stable Mojo; mojo build -O 3; native executable; benchmark v2 strict track",
   "kernels": [
     "integer50",
     "json_escape",
