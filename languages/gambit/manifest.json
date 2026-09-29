@@ -1,11 +1,24 @@
 {
   "display_name": "Gambit Scheme",
   "has_compile_step": true,
-  "optimization": "Latest stable Gambit; gsc -exe; C backend -O3 -march=native -flto -ffp-contract=off",
+  "optimization": "Gambit latest stable; gsc -exe -O3 native C backend; portable vector benchmark v2 strict track",
   "kernels": [
     "integer50",
     "json_escape",
-    "binary_trees",
-    "mandelbrot"
+    "merge_sort",
+    "binary_search",
+    "prefix_sum",
+    "matrix_mul",
+    "bfs",
+    "dijkstra",
+    "union_find",
+    "mandelbrot",
+    "dynamic_array",
+    "linked_list",
+    "queue_ring",
+    "hash_table",
+    "binary_heap",
+    "bst",
+    "trie"
   ]
 }

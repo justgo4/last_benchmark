@@ -1,11 +1,24 @@
 {
   "display_name": "JavaScript (Node.js)",
   "has_compile_step": false,
-  "optimization": "Node.js latest stable Current; V8 optimizing JIT; --max-old-space-size=4096",
+  "optimization": "Node.js latest stable Current; V8 optimizing JIT; --max-old-space-size=4096; benchmark v2 strict track",
   "kernels": [
     "integer50",
     "json_escape",
-    "binary_trees",
-    "mandelbrot"
+    "merge_sort",
+    "binary_search",
+    "prefix_sum",
+    "matrix_mul",
+    "bfs",
+    "dijkstra",
+    "union_find",
+    "mandelbrot",
+    "dynamic_array",
+    "linked_list",
+    "queue_ring",
+    "hash_table",
+    "binary_heap",
+    "bst",
+    "trie"
   ]
 }

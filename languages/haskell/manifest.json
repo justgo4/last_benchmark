@@ -1,11 +1,24 @@
 {
   "display_name": "Haskell (GHC)",
   "has_compile_step": true,
-  "optimization": "GHC -O2 -march=native; single RTS capability; -A64m",
+  "optimization": "GHC -O2 -funbox-strict-fields; IOUArray mutable v2 kernels; benchmark v2 strict track",
   "kernels": [
     "integer50",
     "json_escape",
-    "binary_trees",
-    "mandelbrot"
+    "merge_sort",
+    "binary_search",
+    "prefix_sum",
+    "matrix_mul",
+    "bfs",
+    "dijkstra",
+    "union_find",
+    "mandelbrot",
+    "dynamic_array",
+    "linked_list",
+    "queue_ring",
+    "hash_table",
+    "binary_heap",
+    "bst",
+    "trie"
   ]
 }

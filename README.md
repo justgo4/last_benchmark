@@ -202,3 +202,71 @@ Run the C reference locally with:
 python scripts/check_public_repo.py
 python scripts/measure.py c
 ```
+
+<!-- BENCHMARK_V2_START -->
+## Benchmark v2 results
+
+The v2 suite benchmarks common algorithms and data structures and records runtime, compile/build time, intermediate and final artifact size, average runtime RSS, and peak runtime RSS.
+
+### Composite score
+
+The composite is cohort-relative 0-100; higher is better. Lower-is-better raw metrics are logarithmically normalized before weighting.
+
+| Metric | Weight |
+| --- | ---: |
+| Runtime | 50.0% |
+| Compile/build time | 15.0% |
+| Average runtime memory | 15.0% |
+| Peak runtime memory | 15.0% |
+| Intermediate artifact size | 2.5% |
+| Final artifact size | 2.5% |
+
+![Benchmark v2 composite score](docs/v2-composite.svg)
+
+| Technology | Composite | Runtime vs C | Compile vs C | Avg RSS vs C | Peak RSS vs C | Intermediate vs C | Final vs C |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| PyO3 | 85.9 | 0.382x | 6.883x | 2.000x | 1.094x | 2.632x | 16.040x |
+| Haskell (GHC) | 84.3 | 0.274x | 9.040x | 1.791x | 2.290x | 2.567x | 54.666x |
+| C (GCC) | 81.7 | 1.000x | 1.000x | 1.000x | 1.000x | 1.000x | 1.000x |
+| C++ (GCC) | 79.2 | 1.075x | 1.058x | 1.268x | 1.021x | 1.016x | 1.002x |
+| Cython | 78.8 | 0.864x | 1.704x | 1.863x | 1.090x | 9.277x | 3.937x |
+| Rust | 77.0 | 0.993x | 2.353x | 1.186x | 1.007x | 41.803x | 68.215x |
+| Go | 74.0 | 1.137x | 1.916x | 1.537x | 1.340x | 0.000x | 47.428x |
+| Nim | 72.2 | 1.181x | 5.764x | 1.295x | 1.195x | 12.632x | 3.083x |
+| Zig | 71.4 | 0.928x | 29.844x | 1.071x | 1.004x | 280.239x | 116.034x |
+| Swift | 70.7 | 1.048x | 5.419x | 2.676x | 1.341x | 1.157x | 2.512x |
+| nanobind | 67.3 | 0.995x | 55.378x | 1.978x | 1.108x | 18.964x | 3.855x |
+| Mojo | 67.2 | 1.379x | 2.204x | 2.881x | 1.327x | 0.000x | 2.685x |
+| Java | 65.8 | 1.072x | 0.452x | 5.546x | 2.755x | 0.158x | 0.261x |
+| JavaScript (Node.js) | 53.0 | 1.740x | 0.000x | 5.738x | 4.751x | 0.000x | 0.371x |
+| TypeScript | 52.1 | 1.795x | 0.049x | 5.774x | 4.672x | 0.204x | 0.569x |
+| Scala 3 | 43.9 | 1.426x | 3.668x | 6.928x | 9.948x | 0.176x | 298.045x |
+| Chez Scheme | 34.4 | 4.060x | 0.255x | 4.970x | 3.085x | 0.363x | 2.427x |
+| Common Lisp (SBCL) | 32.5 | 4.068x | 0.535x | 6.419x | 2.029x | 0.000x | 1128.378x |
+| Racket | 20.6 | 4.193x | 0.903x | 9.997x | 6.028x | 0.874x | 192.439x |
+| Gambit Scheme | 17.8 | 4.121x | 118.386x | 4.755x | 4.343x | 0.000x | 331.637x |
+| Gerbil Scheme | 15.1 | 4.279x | 221.866x | 4.926x | 3.702x | 2.139x | 673.335x |
+
+### Runtime by workload
+
+![Benchmark v2 runtime heatmap](docs/v2-runtime-heatmap.svg)
+
+![Benchmark v2 runtime index](docs/v2-runtime.svg)
+
+### Build, memory and artifact metrics
+
+![Benchmark v2 compile time](docs/v2-compile.svg)
+
+![Benchmark v2 average RSS](docs/v2-average-rss.svg)
+
+![Benchmark v2 peak RSS](docs/v2-peak-rss.svg)
+
+![Benchmark v2 intermediate size](docs/v2-intermediate-size.svg)
+
+![Benchmark v2 final size](docs/v2-final-size.svg)
+
+Machine-readable results: results/summary_v2.json and results/summary_v2.csv. Methodology: spec/BENCHMARK_V2.md.
+
+> Artifact-size caveat: VM/JIT and extension-module results may rely on an external runtime that is not bundled into the reported artifact.
+
+<!-- BENCHMARK_V2_END -->

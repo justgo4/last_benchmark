@@ -1,0 +1,19 @@
+{
+  "integer50": 611836272046268,
+  "json_escape": 2093217363,
+  "merge_sort": 2508451221,
+  "binary_search": 1000241648803,
+  "prefix_sum": 3107032025,
+  "matrix_mul": 1315284388,
+  "bfs": 3334475754,
+  "dijkstra": 1488453861,
+  "union_find": 1004011062,
+  "mandelbrot": 31455574,
+  "dynamic_array": 3377134221,
+  "linked_list": 1370256229,
+  "queue_ring": 3448317921,
+  "hash_table": 835333540,
+  "binary_heap": 3080248888,
+  "bst": 333120,
+  "trie": 355304
+}

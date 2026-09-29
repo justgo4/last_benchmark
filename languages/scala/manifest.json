@@ -1,11 +1,24 @@
 {
   "display_name": "Scala 3",
   "has_compile_step": true,
-  "optimization": "Scala 3 latest stable; JVM HotSpot tiered JIT; class/JAR artifact",
+  "optimization": "Scala 3 latest stable; JVM HotSpot tiered JIT; primitive arrays; benchmark v2 strict track",
   "kernels": [
     "integer50",
     "json_escape",
-    "binary_trees",
-    "mandelbrot"
+    "merge_sort",
+    "binary_search",
+    "prefix_sum",
+    "matrix_mul",
+    "bfs",
+    "dijkstra",
+    "union_find",
+    "mandelbrot",
+    "dynamic_array",
+    "linked_list",
+    "queue_ring",
+    "hash_table",
+    "binary_heap",
+    "bst",
+    "trie"
   ]
 }
