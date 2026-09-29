@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/string.h>
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
