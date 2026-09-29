@@ -10,8 +10,13 @@ cdef extern from *:
         clock_gettime(CLOCK_MONOTONIC, &ts);
         return (double) ts.tv_sec + (double) ts.tv_nsec * 1e-9;
     }
+    static inline uint64_t bench_black_box_u64(uint64_t x) {
+        __asm__ __volatile__("" : "+r"(x) : : "memory");
+        return x;
+    }
     """
     double bench_now_s() noexcept nogil
+    uint64_t bench_black_box_u64(uint64_t) noexcept nogil
 
 cdef inline double now_s() noexcept nogil:
     return bench_now_s()
@@ -36,12 +41,12 @@ cdef uint64_t integer50(uint64_t n) noexcept nogil:
     return s
 
 cdef tuple bench_integer(uint64_t n):
-    cdef uint64_t c=0
+    cdef uint64_t c=0,nn
     cdef double t[7],a,m
     cdef int r
-    integer50(n//20+1)
+    integer50(bench_black_box_u64(n//20+1))
     for r in range(7):
-        a=now_s(); c=integer50(n); t[r]=now_s()-a
+        nn=bench_black_box_u64(n);a=now_s(); c=bench_black_box_u64(integer50(nn)); t[r]=now_s()-a
     m=median7(t)
     return n,m,n/m/1e6,c
 
@@ -123,7 +128,7 @@ cdef tuple bench_trees(uint64_t depth):
     cdef int r
     trees_once(6)
     for r in range(7):
-        a=now_s();c=trees_once(<int>depth);t[r]=now_s()-a
+        a=now_s();c=bench_black_box_u64(trees_once(<int>bench_black_box_u64(depth)));t[r]=now_s()-a
     m=median7(t)
     return depth,m,1/m,c
 
@@ -147,7 +152,7 @@ cdef tuple bench_mandel(uint64_t w):
     cdef int r
     mandelbrot(128,20)
     for r in range(7):
-        a=now_s();c=mandelbrot(<int>w,50);t[r]=now_s()-a
+        a=now_s();c=bench_black_box_u64(mandelbrot(<int>bench_black_box_u64(w),50));t[r]=now_s()-a
     m=median7(t)
     return pix,m,pix/m/1e6,c
 
