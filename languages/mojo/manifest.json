@@ -1,11 +1,24 @@
 {
   "display_name": "Mojo",
   "has_compile_step": true,
-  "optimization": "Latest stable Mojo; mojo build -O 3; native executable",
+  "optimization": "mojo build -O 3; std.collections.List v2 kernels; benchmark v2 strict track",
   "kernels": [
     "integer50",
     "json_escape",
-    "binary_trees",
-    "mandelbrot"
+    "merge_sort",
+    "binary_search",
+    "prefix_sum",
+    "matrix_mul",
+    "bfs",
+    "dijkstra",
+    "union_find",
+    "mandelbrot",
+    "dynamic_array",
+    "linked_list",
+    "queue_ring",
+    "hash_table",
+    "binary_heap",
+    "bst",
+    "trie"
   ]
 }
