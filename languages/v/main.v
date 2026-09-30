@@ -61,6 +61,30 @@ fn ck64(a []u64) u32 {
 	return h
 }
 
+@[noinline]
+fn black_box_u64(x u64) u64 {
+	mut out := u64(0)
+	asm volatile amd64 {
+		mov out, x
+		; =r (out)
+		; r (x)
+		; memory
+	}
+	return out
+}
+
+@[noinline]
+fn black_box_int(x int) int {
+	mut out := 0
+	asm volatile amd64 {
+		mov out, x
+		; =r (out)
+		; r (x)
+		; memory
+	}
+	return out
+}
+
 @[direct_array_access]
 @[noinline]
 fn integer50(n u64) u64 {
@@ -86,7 +110,8 @@ fn bench_integer() {
 	mut c := u64(0)
 	for r in 0 .. 7 {
 		st := now_s()
-		c = integer50(n)
+		c = integer50(black_box_u64(n))
+		_ = black_box_u64(c)
 		times[r] = now_s() - st
 	}
 	m := median(mut times)
@@ -428,11 +453,16 @@ fn mandel(w int,mi int) u64 {
 }
 
 fn bench_mandel() {
-	w:=1600
+	w := 1600
 	_ = mandel(128,20)
 	mut times:=[]f64{len:7}
 	mut c:=u64(0)
-	for r in 0..7 { st:=now_s(); c=mandel(w,50); times[r]=now_s()-st }
+	for r in 0..7 {
+		st:=now_s()
+		c=mandel(black_box_int(w),black_box_int(50))
+		_ = black_box_u64(c)
+		times[r]=now_s()-st
+	}
 	m:=median(mut times)
 	emit('mandelbrot',u64(w*w),m,f64(w*w)/m/1e6,c)
 }
