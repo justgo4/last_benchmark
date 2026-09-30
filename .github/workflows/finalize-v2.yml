@@ -104,6 +104,8 @@ jobs:
 
           results=pathlib.Path("results")
           results.mkdir(exist_ok=True)
+          marker=pathlib.Path(os.environ.get("RUNNER_TEMP","/tmp"))/"v2_cohort_complete"
+          marker.unlink(missing_ok=True)
 
           for workflow_name,lang in wanted.items():
               run=found[workflow_name]
@@ -133,13 +135,14 @@ jobs:
               print(f"{lang}: run={run['id']} artifact={art['id']} sha={run['head_sha'][:12]}")
 
           (results/"v2_cohort_sha.txt").write_text(target+"\n")
+          marker.write_text(target+"\n")
           print(f"downloaded complete {len(techs)}-technology cohort for {target}")
           PY
 
       - name: Check cohort completeness
         id: cohort
         run: |
-          if [[ -f results/v2_cohort_sha.txt ]]; then
+          if [[ -f "$RUNNER_TEMP/v2_cohort_complete" ]]; then
             echo "complete=true" >> "$GITHUB_OUTPUT"
           else
             echo "complete=false" >> "$GITHUB_OUTPUT"
