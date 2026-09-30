@@ -1,0 +1,33 @@
+name: benchmark-c3
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/c3/**','scripts/measure.py','spec/**','.github/workflows/benchmark-c3.yml']
+permissions: {contents: read}
+jobs:
+  c3:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - name: Install latest stable C3
+        run: |
+          set -euo pipefail
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/c3lang/c3c/releases/latest > /tmp/c3-release.json
+          url="$(python - <<'PY'
+          import json
+          d=json.load(open('/tmp/c3-release.json'))
+          print(next(a['browser_download_url'] for a in d['assets'] if a['name']=='c3-linux.tar.gz'))
+          PY
+          )"
+          curl -fsSL "$url" -o /tmp/c3.tar.gz
+          mkdir -p "$HOME/c3"; tar -xzf /tmp/c3.tar.gz -C "$HOME/c3"
+          bin="$(find "$HOME/c3" -type f -name c3c -perm -u+x | head -n1)"
+          test -n "$bin"
+          echo "$(dirname "$bin")" >> "$GITHUB_PATH"
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time
+      - run: python scripts/measure.py c3
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-c3, path: results/c3.json}

@@ -1,0 +1,31 @@
+name: benchmark-v
+on:
+  workflow_dispatch:
+  push:
+    paths: ['languages/v/**','scripts/measure.py','spec/**','.github/workflows/benchmark-v.yml']
+permissions: {contents: read}
+jobs:
+  v:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.x'}
+      - name: Install latest stable V
+        run: |
+          set -euo pipefail
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/vlang/v/releases/latest > /tmp/v-release.json
+          url="$(python - <<'PY'
+          import json
+          d=json.load(open('/tmp/v-release.json'))
+          print(next(a['browser_download_url'] for a in d['assets'] if a['name']=='v_linux.zip'))
+          PY
+          )"
+          curl -fsSL "$url" -o /tmp/v.zip
+          mkdir -p "$HOME/vlang"; unzip -q /tmp/v.zip -d "$HOME/vlang"
+          echo "$HOME/vlang/v" >> "$GITHUB_PATH"
+      - run: python scripts/check_public_repo.py
+      - run: sudo apt-get update && sudo apt-get install -y time gcc
+      - run: python scripts/measure.py v
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark-v, path: results/v.json}

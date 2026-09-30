@@ -34,7 +34,7 @@ jobs:
 
           repo=os.environ["GH_REPOSITORY"]
           token=os.environ["GH_TOKEN"]
-          techs=["c","cpp","cython","nanobind","pyo3","rust","zig","go","haskell","racket","chez","gambit","gerbil","sbcl","java","scala","swift","mojo","typescript","javascript","nim"]
+          techs=["c","cpp","c3","cython","nanobind","pyo3","rust","zig","v","go","haskell","racket","chez","gambit","gerbil","sbcl","java","scala","swift","mojo","typescript","javascript","nim"]
           wanted={f"benchmark-{x}":x for x in techs}
           found={}
 
