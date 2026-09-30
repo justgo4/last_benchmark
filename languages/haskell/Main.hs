@@ -10,6 +10,7 @@ import Control.Monad (replicateM, when)
 import Control.Exception (evaluate)
 import Data.Array.IO
 import Data.Array.MArray
+import Data.IORef (newIORef, atomicModifyIORef')
 
 now :: IO Double
 now = do
@@ -108,6 +109,7 @@ fillW8 a n x = go 0
     go !i | i>=n = pure ()
           | otherwise = writeArray a i x >> go (i+1)
 
+{-# NOINLINE integer50 #-}
 integer50 :: Word64 -> Word64
 integer50 n = go n ((.&.) 88172645463325252 mask) 0
   where
@@ -124,7 +126,15 @@ integer50 n = go n ((.&.) 88172645463325252 mask) 0
 benchInteger :: Word64 -> IO ()
 benchInteger n = do
   _ <- evaluate (integer50 (div n 20 + 1))
-  (m,c) <- measure7 (evaluate (integer50 n))
+  nRef <- newIORef n
+  xs <- replicateM 7 $ do
+    n' <- atomicModifyIORef' nRef (\x -> (x,x))
+    a <- now
+    c <- evaluate (integer50 n')
+    b <- now
+    pure (b-a,c)
+  let m = median (map fst xs)
+      c = snd (last xs)
   emit "integer50" n m (fromIntegral n/m/1e6) c
 
 patternBytes :: [Word8]
@@ -512,6 +522,7 @@ benchUF n=do
   let m=median ts
   emit "union_find"(fromIntegral ops)m(fromIntegral ops/m/1e6)(fromIntegral c)
 
+{-# NOINLINE mandelbrot #-}
 mandelbrot :: Int -> Int -> Word64
 mandelbrot w maxIter=goY 0 0
   where
@@ -533,8 +544,15 @@ mandelbrot w maxIter=goY 0 0
 benchMandel :: Int -> IO ()
 benchMandel w=do
   _<-evaluate(mandelbrot(min w 128)20)
-  (m,c)<-measure7(evaluate(mandelbrot w 50))
-  let pix=fromIntegral(w*w)
+  wRef<-newIORef w
+  xs<-replicateM 7$do
+    w'<-atomicModifyIORef' wRef (\x -> (x,x))
+    a<-now
+    c<-evaluate(mandelbrot w' 50)
+    b<-now
+    pure(b-a,c)
+  let m=median(map fst xs);c=snd(last xs)
+      pix=fromIntegral(w*w)
   emit "mandelbrot" pix m(fromIntegral pix/m/1e6)c
 
 dynamicOnce :: IOUArray Int Word32 -> Int -> IO Word32

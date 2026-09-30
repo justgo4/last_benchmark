@@ -2,7 +2,7 @@ name: benchmark-pyo3
 on:
   workflow_dispatch:
   push:
-    paths: ['languages/pyo3/**','scripts/measure.py','spec/**','.github/workflows/benchmark-pyo3.yml']
+    paths: ['languages/pyo3/**','languages/rust/main.rs','scripts/measure.py','spec/**','.github/workflows/benchmark-pyo3.yml']
 permissions: {contents: read}
 jobs:
   pyo3:

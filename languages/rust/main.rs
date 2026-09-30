@@ -1,5 +1,6 @@
 use std::{env, time::Instant};
 use std::cell::{Cell, RefCell};
+use std::hint::black_box;
 
 fn median(mut v: Vec<f64>) -> f64 { v.sort_by(|a,b| a.total_cmp(b)); v[v.len()/2] }
 #[derive(Clone)]
@@ -18,7 +19,7 @@ fn ck32(a:&[u32])->u32{let mut h=2166136261u32;for &x in a{h^=x;h=h.wrapping_mul
 fn ck64(a:&[u64])->u32{let mut h=2166136261u32;for &x in a{h^=x as u32;h=h.wrapping_mul(16777619);h^=(x>>32)as u32;h=h.wrapping_mul(16777619);}h}
 
 fn integer50(n:u64)->u64{let mask=(1u64<<50)-1;let mut x=88172645463325252u64&mask;let mut s=0u64;for _ in 0..n{x^=x>>7;x^=(x<<8)&mask;x^=x>>9;x&=mask;s=s.wrapping_add(x^(x>>17))&mask;}s}
-fn bench_integer(n:u64,r:usize){let _=integer50(n/20+1);let mut t=Vec::with_capacity(r);let mut c=0;for _ in 0..r{let a=Instant::now();c=integer50(n);t.push(a.elapsed().as_secs_f64());}let m=median(t);emit("integer50",n,r,m,n as f64/m/1e6,c);}
+fn bench_integer(n:u64,r:usize){let _=integer50(n/20+1);let mut t=Vec::with_capacity(r);let mut c=0;for _ in 0..r{let a=Instant::now();c=black_box(integer50(black_box(n)));t.push(a.elapsed().as_secs_f64());}let m=median(t);emit("integer50",n,r,m,n as f64/m/1e6,c);}
 
 const PAT:[u8;23]=[97,108,112,104,97,34,98,101,116,97,92,103,97,109,109,97,10,9,1,120,121,122,47];
 fn json_escape(input:&[u8],out:&mut[u8])->usize{const H:&[u8;16]=b"0123456789abcdef";let mut j=0;out[j]=34;j+=1;for &c in input{match c{34=>{out[j]=92;out[j+1]=34;j+=2},92=>{out[j]=92;out[j+1]=92;j+=2},8=>{out[j]=92;out[j+1]=98;j+=2},12=>{out[j]=92;out[j+1]=102;j+=2},10=>{out[j]=92;out[j+1]=110;j+=2},13=>{out[j]=92;out[j+1]=114;j+=2},9=>{out[j]=92;out[j+1]=116;j+=2},0..=31=>{out[j]=92;out[j+1]=117;out[j+2]=48;out[j+3]=48;out[j+4]=H[(c>>4)as usize];out[j+5]=H[(c&15)as usize];j+=6},_=>{out[j]=c;j+=1}}}out[j]=34;j+1}
@@ -30,7 +31,7 @@ fn bench_merge(n:u64,r:usize){let n=n as usize;let base:Vec<u32>=(0..n).map(|i|m
 
 fn bs(a:&[u32],x:u32)->i32{let(mut l,mut h)=(0usize,a.len());while l<h{let m=l+(h-l)/2;if a[m]<x{l=m+1}else{h=m}}if l<a.len()&&a[l]==x{l as i32}else{-1}}
 fn bs_once(a:&[u32],q:&[u32])->u64{let mut h=0u64;for &x in q{let p=bs(a,x);if p>=0{h+=p as u64+1;}}h}
-fn bench_bs(n:u64,r:usize){let n=n as usize;let a:Vec<u32>=(0..n).map(|i|(i*2)as u32).collect();let q:Vec<u32>=(0..n*4).map(|i|mix32(i as u32)%(2*n)as u32).collect();let mut t=Vec::with_capacity(r);let mut c=0;for _ in 0..r{let s=Instant::now();c=bs_once(&a,&q);t.push(s.elapsed().as_secs_f64());}let m=median(t);emit("binary_search",q.len()as u64,r,m,q.len()as f64/m/1e6,c);}
+fn bench_bs(n:u64,r:usize){let n=n as usize;let a:Vec<u32>=(0..n).map(|i|(i*2)as u32).collect();let q:Vec<u32>=(0..n*4).map(|i|mix32(i as u32)%(2*n)as u32).collect();let mut t=Vec::with_capacity(r);let mut c=0;for _ in 0..r{let s=Instant::now();c=black_box(bs_once(black_box(&a),black_box(&q)));t.push(s.elapsed().as_secs_f64());}let m=median(t);emit("binary_search",q.len()as u64,r,m,q.len()as f64/m/1e6,c);}
 
 fn prefix(input:&[u32],out:&mut[u64],passes:usize)->u64{let mut c=0u64;for p in 0..passes{let mut s=p as u64;for(i,&x)in input.iter().enumerate(){s+=x as u64;out[i]=s;}c^=s;}c}
 fn bench_prefix(n:u64,r:usize){let input:Vec<u32>=(0..n as usize).map(|i|mix32(i as u32)&1023).collect();let mut out=vec![0u64;n as usize];let mut t=Vec::with_capacity(r);let mut c=0;for _ in 0..r{let s=Instant::now();c=prefix(&input,&mut out,16);t.push(s.elapsed().as_secs_f64());}c^=ck64(&out)as u64;let m=median(t);emit("prefix_sum",n*16,r,m,n as f64*16.0/m/1e6,c);}
@@ -53,7 +54,7 @@ fn uf_run(p:&mut[u32],rank:&mut[u8],aa:&[u32],bb:&[u32]){for i in 0..p.len(){p[i
 fn bench_uf(n:u64,r:usize){let n=n as usize;let ops=n*4;let aa:Vec<u32>=(0..ops).map(|i|mix32(i as u32)%n as u32).collect();let bb:Vec<u32>=(0..ops).map(|i|mix32((i+ops)as u32)%n as u32).collect();let mut p=vec![0u32;n];let mut rank=vec![0u8;n];let mut t=Vec::with_capacity(r);for _ in 0..r{let s=Instant::now();uf_run(&mut p,&mut rank,&aa,&bb);t.push(s.elapsed().as_secs_f64());}for i in 0..n{p[i]=uf_find(&mut p,i as u32);}let m=median(t);emit("union_find",ops as u64,r,m,ops as f64/m/1e6,ck32(&p)as u64);}
 
 fn mandel(w:usize,mi:usize)->u64{let mut sum=0;for y in 0..w{let ci=-1.5+3.0*y as f64/(w-1)as f64;for x in 0..w{let cr=-2.0+3.0*x as f64/(w-1)as f64;let(mut zr,mut zi,mut it)=(0.0,0.0,0);while it<mi{let(a,b)=(zr*zr,zi*zi);if a+b>4.0{break}let nz=a-b+cr;zi=2.0*zr*zi+ci;zr=nz;it+=1;}sum+=it as u64;}}sum}
-fn bench_mandel(w:u64,r:usize){let _=mandel((w as usize).min(128),20);let mut t=Vec::with_capacity(r);let mut c=0;for _ in 0..r{let s=Instant::now();c=mandel(w as usize,50);t.push(s.elapsed().as_secs_f64());}let m=median(t);emit("mandelbrot",w*w,r,m,(w*w)as f64/m/1e6,c);}
+fn bench_mandel(w:u64,r:usize){let _=mandel((w as usize).min(128),20);let mut t=Vec::with_capacity(r);let mut c=0;for _ in 0..r{let s=Instant::now();c=black_box(mandel(black_box(w as usize),black_box(50usize)));t.push(s.elapsed().as_secs_f64());}let m=median(t);emit("mandelbrot",w*w,r,m,(w*w)as f64/m/1e6,c);}
 
 fn vector_once(input:&[u32])->u32{let mut v=Vec::new();for &x in input{v.push(x);}let mut h=2166136261u32;for i in 0..v.len(){v[i]^=i as u32;h=(h^v[i]).wrapping_mul(16777619);}while let Some(x)=v.pop(){h=(h^x.wrapping_add(v.len()as u32)).wrapping_mul(16777619);}h}
 fn bench_va(n:u64,r:usize){let input:Vec<u32>=(0..n as usize).map(|i|mix32(i as u32)).collect();let mut t=Vec::with_capacity(r);let mut c=0;for _ in 0..r{let s=Instant::now();c=vector_once(&input);t.push(s.elapsed().as_secs_f64());}let m=median(t);emit("dynamic_array",n,r,m,n as f64/m/1e6,c as u64);}

@@ -17,7 +17,7 @@ RESULT_RE = re.compile(
     r"seconds=(?P<seconds>[0-9.eE+-]+) rate=(?P<rate>[0-9.eE+-]+) checksum=(?P<checksum>\d+)$"
 )
 EXPECTED_PATH = ROOT / "spec" / "EXPECTED_V2.json"
-LEGACY_EXPECTED_PATH = ROOT / "spec" / "EXPECTED.json"
+LEGACY_EXPECTED_PATH = ROOT / "spec" / "EXPECTED.json"\nMIN_TRUSTED_WORKLOAD_SECONDS = 0.001
 
 
 def load_expected():
@@ -150,13 +150,24 @@ def validate_checksum(kernel, checksum, label):
 def measure_workload(cmd, kernel, label):
     stdout, stderr, avg_rss, peak_rss, samples = run_monitored(cmd)
     result = parse_result_text(stdout, stderr, label)
+    if result["kernel"] != kernel:
+        raise RuntimeError(
+            f"{label}: reported kernel={result['kernel']} expected={kernel}")
+    rounds = int(result["rounds"])
+    if rounds != 7:
+        raise RuntimeError(f"{label}: reported rounds={rounds} expected=7")
+    seconds = float(result["seconds"])
+    if not math.isfinite(seconds) or seconds < MIN_TRUSTED_WORKLOAD_SECONDS:
+        raise RuntimeError(
+            f"{label}: implausible runtime {seconds:.9g}s; "
+            "possible optimizer elimination/hoisting")
     checksum = int(result["checksum"])
     validate_checksum(kernel, checksum, label)
     return {
         "kernel": result["kernel"],
         "units": int(result["units"]),
-        "rounds": int(result["rounds"]),
-        "run_seconds": float(result["seconds"]),
+        "rounds": rounds,
+        "run_seconds": seconds,
         "rate": float(result["rate"]),
         "checksum": checksum,
         "avg_rss_kib": avg_rss,
