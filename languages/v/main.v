@@ -309,32 +309,32 @@ fn bench_bfs() {
 
 struct HeapItem { d u64 v int }
 
-fn hp_push(mut h []HeapItem,mut sz int,x HeapItem) {
+fn hp_push(mut h []HeapItem, sz int, x HeapItem) int {
 	mut i:=sz
-	sz++
 	for i>0 {
 		p:=(i-1)/2
 		if h[p].d<=x.d { break }
 		h[i]=h[p]; i=p
 	}
 	h[i]=x
+	return sz+1
 }
 
-fn hp_pop(mut h []HeapItem,mut sz int) HeapItem {
+fn hp_pop(mut h []HeapItem, sz int) (HeapItem,int) {
 	o:=h[0]
-	sz--
-	x:=h[sz]
+	ns:=sz-1
+	x:=h[ns]
 	mut i:=0
 	for {
 		l:=i*2+1
-		if l>=sz { break }
+		if l>=ns { break }
 		r:=l+1
-		c:=if r<sz && h[r].d<h[l].d { r } else { l }
+		c:=if r<ns && h[r].d<h[l].d { r } else { l }
 		if h[c].d>=x.d { break }
 		h[i]=h[c]; i=c
 	}
-	if sz>0 { h[i]=x }
-	return o
+	if ns>0 { h[i]=x }
+	return o,ns
 }
 
 fn bench_dijkstra() {
@@ -353,15 +353,16 @@ fn bench_dijkstra() {
 		for i in 0..n { dist[i]=inf }
 		dist[0]=0
 		mut sz:=0
-		hp_push(mut heap,mut sz,HeapItem{d:0,v:0})
+		sz=hp_push(mut heap,sz,HeapItem{d:0,v:0})
 		for sz>0 {
-			x:=hp_pop(mut heap,mut sz)
+			x,ns:=hp_pop(mut heap,sz)
+			sz=ns
 			if x.d!=dist[x.v] { continue }
 			for e in 0..d {
 				p:=x.v*d+e
 				v:=int(a[p])
 				nd:=x.d+u64(w[p])
-				if nd<dist[v] { dist[v]=nd; hp_push(mut heap,mut sz,HeapItem{d:nd,v:v}) }
+				if nd<dist[v] { dist[v]=nd; sz=hp_push(mut heap,sz,HeapItem{d:nd,v:v}) }
 			}
 		}
 		c=ck64(dist); times[r]=now_s()-st
@@ -543,22 +544,23 @@ fn bench_hash() {
 	emit('hash_table',u64(n),m,f64(n*2)/m/1e6,u64(c))
 }
 
-fn heap_push(mut h []u32,mut sz int,x u32) {
-	mut i:=sz; sz++
+fn heap_push(mut h []u32, sz int, x u32) int {
+	mut i:=sz
 	for i>0 { p:=(i-1)/2; if h[p]<=x { break }; h[i]=h[p]; i=p }
 	h[i]=x
+	return sz+1
 }
 
-fn heap_pop(mut h []u32,mut sz int) u32 {
-	o:=h[0]; sz--; x:=h[sz]; mut i:=0
+fn heap_pop(mut h []u32, sz int) (u32,int) {
+	o:=h[0]; ns:=sz-1; x:=h[ns]; mut i:=0
 	for {
-		l:=i*2+1; if l>=sz { break }
-		r:=l+1; c:=if r<sz && h[r]<h[l] { r } else { l }
+		l:=i*2+1; if l>=ns { break }
+		r:=l+1; c:=if r<ns && h[r]<h[l] { r } else { l }
 		if h[c]>=x { break }
 		h[i]=h[c]; i=c
 	}
-	if sz>0 { h[i]=x }
-	return o
+	if ns>0 { h[i]=x }
+	return o,ns
 }
 
 fn bench_heap() {
@@ -570,9 +572,13 @@ fn bench_heap() {
 	mut c:=u32(0)
 	for r in 0..7 {
 		st:=now_s(); mut sz:=0
-		for x in input { heap_push(mut h,mut sz,x) }
+		for x in input { sz=heap_push(mut h,sz,x) }
 		mut z:=u32(0)
-		for i in 0..n { z^=heap_pop(mut h,mut sz)+u32(i) }
+		for i in 0..n {
+			x,ns:=heap_pop(mut h,sz)
+			sz=ns
+			z^=x+u32(i)
+		}
 		c=z; times[r]=now_s()-st
 	}
 	m:=median(mut times)
