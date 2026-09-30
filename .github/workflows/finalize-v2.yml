@@ -109,3 +109,5 @@ jobs:
           fi
           git commit -m "Publish benchmark v2 final results"
           git push origin HEAD:benchmark-v2
+
+# Refresh marker: C3/V anti-hoist correction
