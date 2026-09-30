@@ -623,11 +623,29 @@ fn void heap_push(uint[] h,sz* size,uint x)
 	sz i=(*size)++;
 	while(i){sz p=(i-1)/2;if(h[p]<=x)break;h[i]=h[p];i=p;}h[i]=x;
 }
-fn uint heap_pop(uint[] h,sz* size)
+fn uint heap_pop(uint[] h, sz* size)
 {
-	uint out=h[0]; uint x=h[--*size]; sz i=0;
-	while(true){sz l=i*2+1;if(l>=*size)break;sz r=l+1;sz c=l;if(r<*size&&h[r]<h[l])c=r;if(h[c]>=x)break;h[i]=h[c];i=c;}
-	if(*size)h[i]=x;return out;
+	uint out = h[0];
+	sz n = *size - 1;
+	*size = n;
+	uint x = h[n];
+	sz i = 0;
+	while (true)
+	{
+		sz l = i * 2 + 1;
+		if (l >= n) break;
+		sz r = l + 1;
+		sz c = l;
+		if (r < n)
+		{
+			if (h[r] < h[l]) c = r;
+		}
+		if (h[c] >= x) break;
+		h[i] = h[c];
+		i = c;
+	}
+	if (n > 0) h[i] = x;
+	return out;
 }
 
 fn void bench_heap()
