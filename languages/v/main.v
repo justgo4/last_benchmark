@@ -111,6 +111,7 @@ fn bench_integer() {
 	for r in 0 .. 7 {
 		st := now_s()
 		c = integer50(black_box_u64(n))
+		_ = black_box_u64(c)
 		times[r] = now_s() - st
 	}
 	m := median(mut times)
@@ -456,7 +457,12 @@ fn bench_mandel() {
 	_ = mandel(128,20)
 	mut times:=[]f64{len:7}
 	mut c:=u64(0)
-	for r in 0..7 { st:=now_s(); c=mandel(black_box_int(w),black_box_int(50)); times[r]=now_s()-st }
+	for r in 0..7 {
+		st:=now_s()
+		c=mandel(black_box_int(w),black_box_int(50))
+		_ = black_box_u64(c)
+		times[r]=now_s()-st
+	}
 	m:=median(mut times)
 	emit('mandelbrot',u64(w*w),m,f64(w*w)/m/1e6,c)
 }
