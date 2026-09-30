@@ -61,6 +61,30 @@ fn ck64(a []u64) u32 {
 	return h
 }
 
+@[noinline]
+fn black_box_u64(x u64) u64 {
+	mut out := u64(0)
+	asm volatile amd64 {
+		mov out, x
+		; =r (out)
+		; r (x)
+		; memory
+	}
+	return out
+}
+
+@[noinline]
+fn black_box_int(x int) int {
+	mut out := 0
+	asm volatile amd64 {
+		mov out, x
+		; =r (out)
+		; r (x)
+		; memory
+	}
+	return out
+}
+
 @[direct_array_access]
 @[noinline]
 fn integer50(n u64) u64 {
@@ -79,14 +103,14 @@ fn integer50(n u64) u64 {
 	return s
 }
 
-fn bench_integer(runtime_guard int) {
-	n := if runtime_guard > 0 { u64(200000000) } else { u64(199999999) }
+fn bench_integer() {
+	n := u64(200000000)
 	_ = integer50(n / 20 + 1)
 	mut times := []f64{len: 7}
 	mut c := u64(0)
 	for r in 0 .. 7 {
 		st := now_s()
-		c = integer50(n)
+		c = integer50(black_box_u64(n))
 		times[r] = now_s() - st
 	}
 	m := median(mut times)
@@ -427,12 +451,12 @@ fn mandel(w int,mi int) u64 {
 	return sum
 }
 
-fn bench_mandel(runtime_guard int) {
-	w := if runtime_guard > 0 { 1600 } else { 1599 }
+fn bench_mandel() {
+	w := 1600
 	_ = mandel(128,20)
 	mut times:=[]f64{len:7}
 	mut c:=u64(0)
-	for r in 0..7 { st:=now_s(); c=mandel(w,50); times[r]=now_s()-st }
+	for r in 0..7 { st:=now_s(); c=mandel(black_box_int(w),black_box_int(50)); times[r]=now_s()-st }
 	m:=median(mut times)
 	emit('mandelbrot',u64(w*w),m,f64(w*w)/m/1e6,c)
 }
@@ -672,7 +696,7 @@ fn bench_trie() {
 fn main() {
 	k:=if os.args.len>1 { os.args[1] } else { 'integer50' }
 	match k {
-		'integer50' { bench_integer(os.args.len) }
+		'integer50' { bench_integer() }
 		'json_escape' { bench_json() }
 		'merge_sort' { bench_merge() }
 		'binary_search' { bench_bs() }
@@ -681,7 +705,7 @@ fn main() {
 		'bfs' { bench_bfs() }
 		'dijkstra' { bench_dijkstra() }
 		'union_find' { bench_uf() }
-		'mandelbrot' { bench_mandel(os.args.len) }
+		'mandelbrot' { bench_mandel() }
 		'dynamic_array' { bench_dynamic() }
 		'linked_list' { bench_list() }
 		'queue_ring' { bench_queue() }
