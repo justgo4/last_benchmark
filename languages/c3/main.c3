@@ -164,7 +164,7 @@ fn void merge_sort(uint[] a, uint[] tmp)
 		{
 			sz mid = min(lo + w, n);
 			sz hi = min(lo + 2 * w, n);
-			sz i = lo, j = mid, k = lo;
+			sz i = lo; sz j = mid; sz k = lo;
 			while (i < mid && j < hi)
 			{
 				if (src[i] <= src[j]) dst[k++] = src[i++];
@@ -202,7 +202,7 @@ fn void bench_merge()
 
 fn int lower_search(uint[] a, uint x)
 {
-	sz l = 0, h = a.len;
+	sz l = 0; sz h = a.len;
 	while (l < h)
 	{
 		sz m = l + (h - l) / 2;
@@ -304,7 +304,7 @@ fn void fill_graph(uint[] a, uint[] w, sz n, bool weighted)
 fn void bench_bfs()
 {
 	const sz N = 200_000;
-	const int D = 4, PASSES = 16;
+	const int D = 4; const int PASSES = 16;
 	uint[] a = mem::alloc_array(uint, N * D);
 	uint[] dummy = mem::alloc_array(uint, N * D);
 	int[] dist = mem::alloc_array(int, N);
@@ -320,7 +320,7 @@ fn void bench_bfs()
 		{
 			for (sz i = 0; i < N; i++) dist[i] = -1;
 			dist[0] = 0; q[0] = 0;
-			sz h = 0, t = 1;
+			sz h = 0; sz t = 1;
 			while (h < t)
 			{
 				uint u = q[h++];
@@ -430,7 +430,7 @@ fn void bench_uf()
 		for (sz i = 0; i < N; i++) { parent[i] = (uint)i; rank[i] = 0; }
 		for (sz i = 0; i < OPS; i++)
 		{
-			uint ra = uf_find(parent, aa[i]), rb = uf_find(parent, bb[i]);
+			uint ra = uf_find(parent, aa[i]); uint rb = uf_find(parent, bb[i]);
 			if (ra != rb)
 			{
 				if (rank[ra] < rank[rb]) { uint z = ra; ra = rb; rb = z; }
@@ -453,11 +453,11 @@ fn ulong mandel(int w, int mi) @noinline
 		double ci = -1.5 + 3.0 * y / (w - 1.0);
 		for (int x = 0; x < w; x++)
 		{
-			double cr = -2.0 + 3.0 * x / (w - 1.0), zr = 0, zi = 0;
+			double cr = -2.0 + 3.0 * x / (w - 1.0); double zr = 0; double zi = 0;
 			int it = 0;
 			while (it < mi)
 			{
-				double a = zr * zr, b = zi * zi;
+				double a = zr * zr; double b = zi * zi;
 				if (a + b > 4.0) break;
 				double nz = a - b + cr;
 				zi = 2.0 * zr * zi + ci; zr = nz; it++;
@@ -482,7 +482,7 @@ fn void bench_mandel()
 
 fn uint dynamic_once(uint[] input)
 {
-	sz cap = 8, len = 0;
+	sz cap = 8; sz len = 0;
 	uint[] v = mem::alloc_array(uint, cap);
 	foreach (x : input)
 	{
@@ -544,7 +544,7 @@ fn uint list_once(uint[] next,uint[] val,uint[] base,int passes)
 fn void bench_list()
 {
 	const sz N=4_000_000; const int PASSES=16;
-	uint[] next=mem::alloc_array(uint,N), val=mem::alloc_array(uint,N), base=mem::alloc_array(uint,N);
+	uint[] next=mem::alloc_array(uint,N); uint[] val=mem::alloc_array(uint,N); uint[] base=mem::alloc_array(uint,N);
 	double[] times=mem::alloc_array(double,7);
 	defer{free(times);free(base);free(val);free(next);}
 	for(sz i=0;i<N;i++)base[i]=mix32((uint)i);
@@ -556,7 +556,7 @@ fn void bench_list()
 
 fn uint queue_once(uint[] buf,uint[] input)
 {
-	sz cap=buf.len,h=0,t=0,cnt=0;uint z=0;
+	sz cap=buf.len; sz h=0; sz t=0; sz cnt=0; uint z=0;
 	for(sz i=0;i<input.len;i++)
 	{
 		if((i&3)!=3)
@@ -573,7 +573,7 @@ fn uint queue_once(uint[] buf,uint[] input)
 fn void bench_queue()
 {
 	const sz OPS=10_000_000; const sz CAP=OPS/2+1024;
-	uint[] buf=mem::alloc_array(uint,CAP),input=mem::alloc_array(uint,OPS);
+	uint[] buf=mem::alloc_array(uint,CAP); uint[] input=mem::alloc_array(uint,OPS);
 	double[] times=mem::alloc_array(double,7);
 	defer{free(times);free(input);free(buf);}
 	for(sz i=0;i<OPS;i++)input[i]=mix32((uint)i);
@@ -587,7 +587,7 @@ fn sz next_pow2(sz x){sz p=1;while(p<x)p<<=1;return p;}
 
 fn uint hash_once(uint[] keys,uint[] vals,uint[] ik,uint[] iv)
 {
-	sz cap=keys.len,mask=cap-1,n=ik.len;
+	sz cap=keys.len; sz mask=cap-1; sz n=ik.len;
 	for(sz i=0;i<cap;i++)keys[i]=0;
 	for(sz i=0;i<n;i++)
 	{
@@ -608,7 +608,7 @@ fn uint hash_once(uint[] keys,uint[] vals,uint[] ik,uint[] iv)
 fn void bench_hash()
 {
 	const sz N=1_000_000;sz cap=next_pow2(N*2);
-	uint[] keys=mem::alloc_array(uint,cap),vals=mem::alloc_array(uint,cap),ik=mem::alloc_array(uint,N),iv=mem::alloc_array(uint,N);
+	uint[] keys=mem::alloc_array(uint,cap); uint[] vals=mem::alloc_array(uint,cap); uint[] ik=mem::alloc_array(uint,N); uint[] iv=mem::alloc_array(uint,N);
 	double[] times=mem::alloc_array(double,7);
 	defer{free(times);free(iv);free(ik);free(vals);free(keys);}
 	for(sz i=0;i<N;i++){ik[i]=mix32((uint)i)|1;iv[i]=mix32((uint)i+0x55555555);}
@@ -625,15 +625,15 @@ fn void heap_push(uint[] h,sz* size,uint x)
 }
 fn uint heap_pop(uint[] h,sz* size)
 {
-	uint out=h[0],x=h[--*size];sz i=0;
-	while(true){sz l=i*2+1;if(l>=*size)break;sz r=l+1,c=r<*size&&h[r]<h[l]?r:l;if(h[c]>=x)break;h[i]=h[c];i=c;}
+	uint out=h[0]; uint x=h[--*size]; sz i=0;
+	while(true){sz l=i*2+1;if(l>=*size)break;sz r=l+1; sz c=r<*size&&h[r]<h[l]?r:l;if(h[c]>=x)break;h[i]=h[c];i=c;}
 	if(*size)h[i]=x;return out;
 }
 
 fn void bench_heap()
 {
 	const sz N=1_000_000;
-	uint[] h=mem::alloc_array(uint,N),input=mem::alloc_array(uint,N);
+	uint[] h=mem::alloc_array(uint,N); uint[] input=mem::alloc_array(uint,N);
 	double[] times=mem::alloc_array(double,7);
 	defer{free(times);free(input);free(h);}
 	for(sz i=0;i<N;i++)input[i]=mix32((uint)i);
@@ -650,8 +650,8 @@ fn void bench_heap()
 fn void bench_bst()
 {
 	const sz N=300_000;
-	uint[] keys=mem::alloc_array(uint,N),input=mem::alloc_array(uint,N);
-	int[] left=mem::alloc_array(int,N),right=mem::alloc_array(int,N);
+	uint[] keys=mem::alloc_array(uint,N); uint[] input=mem::alloc_array(uint,N);
+	int[] left=mem::alloc_array(int,N); int[] right=mem::alloc_array(int,N);
 	double[] times=mem::alloc_array(double,7);
 	defer{free(times);free(right);free(left);free(input);free(keys);}
 	for(sz i=0;i<N;i++)input[i]=mix32((uint)i);
