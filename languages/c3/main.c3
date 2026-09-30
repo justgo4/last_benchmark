@@ -87,6 +87,7 @@ fn ulong integer50(ulong n) @noinline
 fn void bench_integer()
 {
 	const ulong N = 200_000_000;
+	ulong runtime_n = N;
 	(void)integer50(N / 20 + 1);
 	double[] times = mem::alloc_array(double, 7);
 	defer free(times);
@@ -94,7 +95,7 @@ fn void bench_integer()
 	for (int r = 0; r < 7; r++)
 	{
 		Clock st = clock::now();
-		c = integer50(N);
+		c = integer50(mem::@volatile_load(runtime_n));
 		times[r] = elapsed(st);
 	}
 	double m = median(times);
@@ -471,11 +472,18 @@ fn ulong mandel(int w, int mi) @noinline
 fn void bench_mandel()
 {
 	const int W = 1600;
+	int runtime_w = W;
+	int runtime_mi = 50;
 	(void)mandel(128,20);
 	double[] times = mem::alloc_array(double,7);
 	defer free(times);
 	ulong c = 0;
-	for (int r = 0; r < 7; r++) { Clock st = clock::now(); c = mandel(W,50); times[r] = elapsed(st); }
+	for (int r = 0; r < 7; r++)
+	{
+		Clock st = clock::now();
+		c = mandel(mem::@volatile_load(runtime_w), mem::@volatile_load(runtime_mi));
+		times[r] = elapsed(st);
+	}
 	double m = median(times);
 	emit("mandelbrot", (ulong)W * W, m, (double)(W * W) / m / 1e6, c);
 }
