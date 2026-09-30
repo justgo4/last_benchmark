@@ -626,7 +626,7 @@ fn void heap_push(uint[] h,sz* size,uint x)
 fn uint heap_pop(uint[] h,sz* size)
 {
 	uint out=h[0]; uint x=h[--*size]; sz i=0;
-	while(true){sz l=i*2+1;if(l>=*size)break;sz r=l+1; sz c=r<*size&&h[r]<h[l]?r:l;if(h[c]>=x)break;h[i]=h[c];i=c;}
+	while(true){sz l=i*2+1;if(l>=*size)break;sz r=l+1;sz c=l;if(r<*size&&h[r]<h[l])c=r;if(h[c]>=x)break;h[i]=h[c];i=c;}
 	if(*size)h[i]=x;return out;
 }
 
