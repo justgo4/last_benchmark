@@ -123,7 +123,7 @@ fn sz json_escape(char[] input, char[] out)
 					out[j++] = 92; out[j++] = 117; out[j++] = 48; out[j++] = 48;
 					out[j++] = HEX[c >> 4]; out[j++] = HEX[c & 15];
 				}
-				else out[j++] = c;
+				else { out[j++] = c; }
 		}
 	}
 	out[j++] = 34;
@@ -167,8 +167,8 @@ fn void merge_sort(uint[] a, uint[] tmp)
 			sz i = lo; sz j = mid; sz k = lo;
 			while (i < mid && j < hi)
 			{
-				if (src[i] <= src[j]) dst[k++] = src[i++];
-				else dst[k++] = src[j++];
+				if (src[i] <= src[j]) { dst[k++] = src[i++]; }
+				else { dst[k++] = src[j++]; }
 			}
 			while (i < mid) dst[k++] = src[i++];
 			while (j < hi) dst[k++] = src[j++];
@@ -206,7 +206,7 @@ fn int lower_search(uint[] a, uint x)
 	while (l < h)
 	{
 		sz m = l + (h - l) / 2;
-		if (a[m] < x) l = m + 1; else h = m;
+		if (a[m] < x) { l = m + 1; } else { h = m; }
 	}
 	return l < a.len && a[l] == x ? (int)l : -1;
 }
@@ -293,9 +293,9 @@ fn void fill_graph(uint[] a, uint[] w, sz n, bool weighted)
 	{
 		sz p = i * D + e;
 		uint v;
-		if (e == 0) v = (uint)((i + 1) % n);
-		else if (e == 1) v = (uint)((i + n - 1) % n);
-		else v = mix32((uint)p) % (uint)n;
+		if (e == 0) { v = (uint)((i + 1) % n); }
+		else if (e == 1) { v = (uint)((i + n - 1) % n); }
+		else { v = mix32((uint)p) % (uint)n; }
 		a[p] = v;
 		if (weighted) w[p] = 1 + (mix32(0xabc00000 + (uint)p) & 15);
 	}
@@ -564,7 +564,7 @@ fn uint queue_once(uint[] buf,uint[] input)
 			if(cnt==cap){z^=buf[h];h=(h+1)%cap;cnt--;}
 			buf[t]=input[i];t=(t+1)%cap;cnt++;
 		}
-		else if(cnt){z^=buf[h];h=(h+1)%cap;cnt--;}
+		else if(cnt) { z^=buf[h]; h=(h+1)%cap; cnt--; }
 	}
 	while(cnt){z^=buf[h];h=(h+1)%cap;cnt--;}
 	return z;
@@ -728,7 +728,7 @@ fn void bench_trie()
 		for(int p=0;p<PASSES;p++)for(sz i=0;i<N;i+=2)
 		{
 			uint word=words[i];int node=0;
-			for(int sh=28;sh>=0&&node>=0;sh-=4)node=ch[(sz)node*16+((word>>(uint)sh)&15)];
+			for(int sh=28;sh>=0&&node>=0;sh-=4)node=ch[(sz)node*16+(sz)((word>>(uint)sh)&15)];
 			if(node>=0&&term[node])h^=(uint)node+1+(uint)p;
 		}
 		c=h;times[r]=elapsed(st);
