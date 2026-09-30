@@ -17,7 +17,8 @@ RESULT_RE = re.compile(
     r"seconds=(?P<seconds>[0-9.eE+-]+) rate=(?P<rate>[0-9.eE+-]+) checksum=(?P<checksum>\d+)$"
 )
 EXPECTED_PATH = ROOT / "spec" / "EXPECTED_V2.json"
-LEGACY_EXPECTED_PATH = ROOT / "spec" / "EXPECTED.json"\nMIN_TRUSTED_WORKLOAD_SECONDS = 0.001
+LEGACY_EXPECTED_PATH = ROOT / "spec" / "EXPECTED.json"
+MIN_TRUSTED_WORKLOAD_SECONDS = 0.001
 
 
 def load_expected():
