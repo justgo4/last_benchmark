@@ -141,35 +141,38 @@ fn bench_json() {
 }
 
 @[direct_array_access]
+fn merge_pass(src []u32, mut dst []u32, w int) {
+	n:=src.len
+	mut lo:=0
+	for lo<n {
+		mid:=if lo+w<n { lo+w } else { n }
+		hi:=if lo+2*w<n { lo+2*w } else { n }
+		mut i:=lo
+		mut j:=mid
+		mut k:=lo
+		for i<mid && j<hi {
+			if src[i]<=src[j] { dst[k]=src[i]; i++ } else { dst[k]=src[j]; j++ }
+			k++
+		}
+		for i<mid { dst[k]=src[i]; i++; k++ }
+		for j<hi { dst[k]=src[j]; j++; k++ }
+		lo += 2*w
+	}
+}
+
+@[direct_array_access]
 fn merge_sort(mut a []u32, mut tmp []u32) {
 	n:=a.len
-	mut src:=a
-	mut dst:=tmp
 	mut flip:=false
 	mut w:=1
 	for w<n {
-		mut lo:=0
-		for lo<n {
-			mid:=if lo+w<n { lo+w } else { n }
-			hi:=if lo+2*w<n { lo+2*w } else { n }
-			mut i:=lo
-			mut j:=mid
-			mut k:=lo
-			for i<mid && j<hi {
-				if src[i]<=src[j] { dst[k]=src[i]; i++ } else { dst[k]=src[j]; j++ }
-				k++
-			}
-			for i<mid { dst[k]=src[i]; i++; k++ }
-			for j<hi { dst[k]=src[j]; j++; k++ }
-			lo += 2*w
-		}
-		src,dst=dst,src
+		if flip { merge_pass(tmp,mut a,w) } else { merge_pass(a,mut tmp,w) }
 		flip=!flip
 		if w>n/2 { break }
 		w*=2
 	}
 	if flip {
-		for i in 0..n { a[i]=src[i] }
+		for i in 0..n { a[i]=tmp[i] }
 	}
 }
 
