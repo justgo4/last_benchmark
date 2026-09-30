@@ -6,6 +6,11 @@ on:
     paths:
       - ".github/workflows/finalize-v2.yml"
   workflow_dispatch:
+    inputs:
+      source_sha:
+        description: "Optional benchmark cohort commit SHA; blank selects the newest complete cohort"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -24,10 +29,11 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Download latest successful v2 artifacts
+      - name: Download newest complete same-commit v2 cohort
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ inputs.source_sha || '' }}
         run: |
           python - <<'PY'
           import io,json,os,pathlib,subprocess,tempfile,urllib.request,zipfile
@@ -36,7 +42,9 @@ jobs:
           token=os.environ["GH_TOKEN"]
           techs=["c","cpp","c3","cython","nanobind","pyo3","rust","zig","v","go","haskell","racket","chez","gambit","gerbil","sbcl","java","scala","swift","mojo","typescript","javascript","nim"]
           wanted={f"benchmark-{x}":x for x in techs}
-          found={}
+          requested_sha=os.environ.get("SOURCE_SHA","").strip()
+          by_sha={}
+          sha_order={}
 
           def get(url):
               req=urllib.request.Request(
@@ -52,16 +60,35 @@ jobs:
 
           for page in range(1,8):
               data=json.loads(get(f"https://api.github.com/repos/{repo}/actions/runs?branch=main&status=success&per_page=100&page={page}"))
-              for run in data.get("workflow_runs",[]):
+              page_runs=data.get("workflow_runs",[])
+              for run in page_runs:
                   name=run.get("name")
-                  if name in wanted and name not in found:
-                      found[name]=run
-              if len(found)==len(wanted) or not data.get("workflow_runs"):
+                  sha=run.get("head_sha")
+                  if name not in wanted or not sha:
+                      continue
+                  cohort=by_sha.setdefault(sha,{})
+                  if name not in cohort:
+                      cohort[name]=run
+                  sha_order[sha]=max(sha_order.get(sha,""),run.get("created_at") or "")
+              if not page_runs:
                   break
 
-          missing=[name for name in wanted if name not in found]
-          if missing:
-              raise SystemExit("missing successful workflow runs: "+", ".join(missing))
+          if requested_sha:
+              source_sha=requested_sha
+              found=by_sha.get(source_sha,{})
+              missing=[name for name in wanted if name not in found]
+              if missing:
+                  raise SystemExit(f"{source_sha}: incomplete successful cohort; missing "+", ".join(missing))
+          else:
+              complete=[sha for sha,runs in by_sha.items() if all(name in runs for name in wanted)]
+              if not complete:
+                  raise SystemExit("no complete same-commit successful 23-technology cohort found on main")
+              source_sha=max(complete,key=lambda sha:sha_order.get(sha,""))
+              found=by_sha[source_sha]
+
+          if len({run["head_sha"] for run in found.values()}) != 1:
+              raise SystemExit("internal error: selected benchmark runs do not share one head_sha")
+          print(f"selected cohort sha={source_sha} workflows={len(found)}")
 
           results=pathlib.Path("results")
           results.mkdir(exist_ok=True)
@@ -91,7 +118,7 @@ jobs:
                   raise SystemExit(f"{lang}: invalid v2 result payload")
               print(f"{lang}: run={run['id']} artifact={art['id']} sha={run['head_sha'][:8]}")
 
-          print(f"downloaded {len(techs)} successful v2 artifacts")
+          print(f"downloaded {len(techs)} successful v2 artifacts from one cohort sha={source_sha}")
           PY
 
       - name: Render final v2 results
