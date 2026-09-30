@@ -149,6 +149,10 @@ jobs:
         if: steps.cohort.outputs.complete == 'true'
         run: python scripts/render_v2.py --write-readme
 
+      - name: Public repository safety gate
+        if: steps.cohort.outputs.complete == 'true'
+        run: python scripts/check_public_repo.py
+
       - name: Commit final v2 report
         if: steps.cohort.outputs.complete == 'true'
         run: |
