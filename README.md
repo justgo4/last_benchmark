@@ -14,11 +14,13 @@ The target set is:
 
 - C
 - C++
+- C3
 - Cython
 - nanobind
 - PyO3
 - Rust
 - Zig
+- V
 - Go
 - Haskell (GHC)
 - Racket
@@ -77,16 +79,18 @@ Toolchains resolve to the newest stable release available at run time. A dated r
 
 ## Status
 
-All 21 requested technologies now have benchmark implementations and have completed a successful GitHub Actions validation run with checksum parity on the four primary workloads:
+Benchmark v2 is complete for all 23 technologies, and every technology has a successful GitHub Actions validation run with checksum parity across all 17 v2 workloads:
 
-- C, C++, Cython, nanobind, PyO3
-- Rust, Zig, Go, Nim, Swift, Mojo
+- C, C++, C3, Cython, nanobind, PyO3
+- Rust, Zig, V, Go, Nim, Swift, Mojo
 - Haskell, Racket, Chez Scheme, Gambit Scheme, Gerbil Scheme, Common Lisp (SBCL)
 - Java, Scala, TypeScript, JavaScript
 
-The public-safety scanner also passes on the current main branch. A benchmark result is considered valid only when all requested workload checksums match `spec/EXPECTED.json`; successful compilation alone is not sufficient.
+The original four-workload v1 results are retained below as historical reference and cover the original 21 technologies, before C3 and V were added.
 
-Per-language workflow artifacts contain the measured compile time, intermediate/final artifact sizes, workload runtime, maximum RSS, compiler/runtime version, CPU model, OS, and optimization flags.
+The public-safety scanner also passes on the current main branch. A benchmark result is considered valid only when all requested workload checksums match the suite's expected values; successful compilation alone is not sufficient.
+
+Per-language workflow artifacts contain the measured compile time, intermediate/final artifact sizes, workload runtime, average and maximum RSS, compiler/runtime version, CPU model, OS, and optimization flags.
 
 ## Benchmark results
 

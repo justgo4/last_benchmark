@@ -2,7 +2,7 @@ name: finalize-v2
 
 on:
   push:
-    branches: [benchmark-v2]
+    branches: [main]
     paths:
       - ".github/workflows/finalize-v2.yml"
   workflow_dispatch:
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: benchmark-v2
+          ref: main
           fetch-depth: 0
 
       - uses: actions/setup-python@v6
@@ -51,7 +51,7 @@ jobs:
                   return r.read()
 
           for page in range(1,8):
-              data=json.loads(get(f"https://api.github.com/repos/{repo}/actions/runs?branch=benchmark-v2&status=success&per_page=100&page={page}"))
+              data=json.loads(get(f"https://api.github.com/repos/{repo}/actions/runs?branch=main&status=success&per_page=100&page={page}"))
               for run in data.get("workflow_runs",[]):
                   name=run.get("name")
                   if name in wanted and name not in found:
@@ -108,4 +108,4 @@ jobs:
             exit 0
           fi
           git commit -m "Publish benchmark v2 final results"
-          git push origin HEAD:benchmark-v2
+          git push origin HEAD:main

@@ -4,7 +4,7 @@
 
 v2 replaces the four-kernel composite with a broad, deterministic suite of common algorithms and data structures. The goal is not to force C to win; the goal is to make every published score explainable, reproducible, and resistant to one pathological workload dominating the ranking.
 
-The original benchmark remains historical material until v2 has a complete validated result for every technology.
+The original benchmark is retained as historical material. Benchmark v2 is now the primary suite and has a complete validated result for all 23 technologies.
 
 ## Workload set
 
@@ -67,7 +67,7 @@ The user-selected weights are fixed:
 
 Because the six metrics have different units and may contain zero (for example JavaScript compile time or no intermediate artifact), raw values are never added directly.
 
-For the final 21-technology table, each metric first becomes a cohort-relative **0-100 score** using a logarithmic lower-is-better normalization. Zero-valued metrics use `log1p`. The best observed technology receives 100 for that metric and the worst receives 0. The final composite is the weighted arithmetic sum of those six metric scores.
+For the final 23-technology table, each metric first becomes a cohort-relative **0-100 score** using a logarithmic lower-is-better normalization. Zero-valued metrics use `log1p`. The best observed technology receives 100 for that metric and the worst receives 0. The final composite is the weighted arithmetic sum of those six metric scores.
 
 This means the composite is relative to the technologies in this repository; it is not a universal constant. Raw values and per-workload results remain the authoritative evidence.
 
