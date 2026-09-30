@@ -79,8 +79,8 @@ fn integer50(n u64) u64 {
 	return s
 }
 
-fn bench_integer() {
-	n := u64(200000000)
+fn bench_integer(runtime_guard int) {
+	n := if runtime_guard > 0 { u64(200000000) } else { u64(199999999) }
 	_ = integer50(n / 20 + 1)
 	mut times := []f64{len: 7}
 	mut c := u64(0)
@@ -427,8 +427,8 @@ fn mandel(w int,mi int) u64 {
 	return sum
 }
 
-fn bench_mandel() {
-	w:=1600
+fn bench_mandel(runtime_guard int) {
+	w := if runtime_guard > 0 { 1600 } else { 1599 }
 	_ = mandel(128,20)
 	mut times:=[]f64{len:7}
 	mut c:=u64(0)
@@ -672,7 +672,7 @@ fn bench_trie() {
 fn main() {
 	k:=if os.args.len>1 { os.args[1] } else { 'integer50' }
 	match k {
-		'integer50' { bench_integer() }
+		'integer50' { bench_integer(os.args.len) }
 		'json_escape' { bench_json() }
 		'merge_sort' { bench_merge() }
 		'binary_search' { bench_bs() }
@@ -681,7 +681,7 @@ fn main() {
 		'bfs' { bench_bfs() }
 		'dijkstra' { bench_dijkstra() }
 		'union_find' { bench_uf() }
-		'mandelbrot' { bench_mandel() }
+		'mandelbrot' { bench_mandel(os.args.len) }
 		'dynamic_array' { bench_dynamic() }
 		'linked_list' { bench_list() }
 		'queue_ring' { bench_queue() }
