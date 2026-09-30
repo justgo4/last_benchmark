@@ -5,7 +5,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 SUITE=json.loads((ROOT/"spec"/"SUITE_V2.json").read_text())
 WORKLOADS=[x["name"] for x in SUITE["workloads"]]
 WEIGHTS=SUITE["composite_weights"]
-TECHS=["c","cpp","cython","nanobind","pyo3","rust","zig","go","haskell","racket","chez","gambit","gerbil","sbcl","java","scala","swift","mojo","typescript","javascript","nim"]
+TECHS=["c","cpp","c3","cython","nanobind","pyo3","rust","zig","v","go","haskell","racket","chez","gambit","gerbil","sbcl","java","scala","swift","mojo","typescript","javascript","nim"]
 METRICS=["runtime","compile_time","average_memory","peak_memory","intermediate_size","final_size"]
 
 def gm(xs):
